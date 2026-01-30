@@ -444,6 +444,53 @@
         .slide.round-2 .asset-container {
             margin-bottom: 2rem;
         }
+
+        /* Round 2: Side-by-Side Layout on Answer Reveal */
+        .slide.round-2.answer-visible .question-content {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 0;
+            /* Reset margin */
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .slide.round-2.answer-visible .asset-container {
+            margin-bottom: 0;
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .slide.round-2.answer-visible .asset-image {
+            max-height: 70vh;
+            /* Slightly larger in side-by-side */
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        .slide.round-2.answer-visible .answer-section {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 300px;
+            margin-top: 0;
+        }
+
+        .slide.round-2.answer-visible .answer {
+            font-size: 5rem;
+            /* Larger answer text */
+            margin-top: 2rem;
+            max-height: none;
+            /* Override animation restriction */
+            transform: none;
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -878,12 +925,17 @@
 
             if (!answerEl || !btnEl) return;
 
+            // Find parent slide to toggle layout class
+            const slide = btnEl.closest('.slide');
+
             if (answerEl.classList.contains('visible')) {
                 answerEl.classList.remove('visible');
                 btnEl.textContent = '显示答案';
+                if (slide) slide.classList.remove('answer-visible');
             } else {
                 answerEl.classList.add('visible');
                 btnEl.textContent = '隐藏答案';
+                if (slide) slide.classList.add('answer-visible');
             }
         }
 
