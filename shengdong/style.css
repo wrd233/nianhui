@@ -1,0 +1,756 @@
+/* ==========================================
+   DESIGN TOKENS
+   ========================================== */
+
+:root {
+    /* Colors - Red/Gold Theme */
+    --primary-red: #C41E3A;
+    --dark-red: #8B1538;
+    --light-red: #E63946;
+    --gold: #FFD700;
+    --light-gold: #FFED4E;
+    --dark-gold: #B8860B;
+
+    /* Backgrounds */
+    --bg-gradient: url('test-assets/background.jpg') no-repeat center center fixed;
+    --bg-dark: #1a0a0f;
+    --panel-bg: rgba(196, 30, 58, 0.25);
+    --panel-border: rgba(255, 215, 0, 0.4);
+
+    /* Text */
+    --text-primary: #FFFFFF;
+    --text-secondary: #FFE5E9;
+    --text-gold: #FFD700;
+
+    /* Spacing */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 1.5rem;
+    --spacing-lg: 2rem;
+    --spacing-xl: 3rem;
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+    /* Borders */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+
+    /* Typography */
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+/* ==========================================
+   RESET & BASE
+   ========================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--text-primary);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+/* Background */
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-gradient);
+    background-size: cover;
+    z-index: -1;
+}
+
+/* ==========================================
+   PRESENTATION CONTAINER
+   ========================================== */
+
+.presentation-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md);
+}
+
+/* 16:9 Slide Canvas */
+.slide-canvas {
+    position: relative;
+    width: 100%;
+    max-width: 1280px;
+    aspect-ratio: 16 / 9;
+    background: var(--bg-dark);
+    border: 2px solid var(--panel-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+/* Fullscreen adjustments */
+.presentation-container:fullscreen .slide-canvas,
+.presentation-container:-webkit-full-screen .slide-canvas,
+.presentation-container:-moz-full-screen .slide-canvas {
+    max-width: none;
+    max-height: 100vh;
+    width: auto;
+    height: 100vh;
+    border: none;
+    border-radius: 0;
+}
+
+/* ==========================================
+   NAVIGATION CONTROLS
+   ========================================== */
+
+.nav-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+.nav-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--panel-border);
+    color: var(--text-gold);
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.nav-btn:hover {
+    background: rgba(255, 215, 0, 0.2);
+    border-color: var(--gold);
+    transform: translateY(-2px);
+}
+
+.nav-btn:active {
+    transform: translateY(0);
+}
+
+.slide-counter {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-gold);
+    padding: 0.5rem 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-sm);
+    backdrop-filter: blur(10px);
+}
+
+/* ==========================================
+   SLIDE TEMPLATES - SHARED STYLES
+   ========================================== */
+
+.slide {
+    width: 100%;
+    height: 100%;
+    padding: var(--spacing-xl);
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.slide.active {
+    opacity: 1;
+}
+
+.slide.fade-enter {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.slide.slide-enter {
+    animation: slideIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Panel Card Component */
+.panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(10px);
+}
+
+/* Gold Accent Line */
+.accent-line {
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gold), var(--light-gold));
+    border-radius: 2px;
+    margin: var(--spacing-sm) 0;
+}
+
+/* ==========================================
+   SLIDE TYPE: COVER
+   ========================================== */
+
+.slide-cover {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: var(--bg-gradient);
+}
+
+.slide-cover h1 {
+    font-family: var(--font-display);
+    font-size: 4.5rem;
+    font-weight: 800;
+    color: var(--text-gold);
+    text-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    margin-bottom: var(--spacing-md);
+    letter-spacing: -0.02em;
+}
+
+.slide-cover h2 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+}
+
+.slide-cover .decorative {
+    font-size: 6rem;
+    margin-top: var(--spacing-lg);
+    opacity: 0.8;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+/* ==========================================
+   SLIDE TYPE: RULES
+   ========================================== */
+
+.slide-rules {
+    background: var(--bg-gradient);
+}
+
+.slide-rules h1 {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-gold);
+    margin-bottom: var(--spacing-md);
+}
+
+.slide-rules .rule-list {
+    list-style: none;
+    counter-reset: rule-counter;
+    max-width: 800px;
+}
+
+.slide-rules .rule-list li {
+    font-size: 1.5rem;
+    line-height: 1.6;
+    padding: var(--spacing-sm) 0;
+    counter-increment: rule-counter;
+    position: relative;
+    padding-left: 3rem;
+}
+
+.slide-rules .rule-list li::before {
+    content: counter(rule-counter);
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2rem;
+    height: 2rem;
+    background: var(--gold);
+    color: var(--dark-red);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+/* ==========================================
+   SLIDE TYPE: GAMEPLAY EXPLANATION
+   ========================================== */
+
+.slide-gameplay {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    background: var(--bg-gradient);
+}
+
+.gameplay-text h1 {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-gold);
+    margin-bottom: var(--spacing-md);
+}
+
+.gameplay-text p {
+    font-size: 1.25rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+}
+
+.gameplay-visual {
+    background: var(--panel-bg);
+    border: 2px solid var(--panel-border);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    box-shadow: var(--shadow-md);
+}
+
+/* ==========================================
+   SLIDE TYPE: SCORING OVERVIEW (6-card grid)
+   ========================================== */
+
+.slide-scoring {
+    background: var(--bg-gradient);
+}
+
+.slide-scoring h1 {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-gold);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+}
+
+.scoring-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.scoring-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.scoring-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.scoring-card .icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.scoring-card h3 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-gold);
+    margin-bottom: var(--spacing-xs);
+}
+
+.scoring-card p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+/* ==========================================
+   SLIDE TYPE: ROUND PREVIEW
+   ========================================== */
+
+.slide-round-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+    background: var(--bg-gradient);
+}
+
+.round-left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.video-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.info-panel h2 {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-gold);
+    margin-bottom: var(--spacing-sm);
+}
+
+.info-panel .info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    font-size: 1rem;
+}
+
+.info-panel .info-item:last-child {
+    border-bottom: none;
+}
+
+.info-panel .info-label {
+    font-weight: 600;
+    color: var(--text-gold);
+}
+
+.info-panel .info-value {
+    color: var(--text-secondary);
+}
+
+.round-right {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.radar-container {
+    flex: 1;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+}
+
+.radar-container canvas {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.props-panel h3 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-gold);
+    margin-bottom: var(--spacing-sm);
+}
+
+.props-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+}
+
+.prop-tag {
+    background: rgba(255, 215, 0, 0.2);
+    border: 1px solid var(--gold);
+    color: var(--text-gold);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* ==========================================
+   SLIDE TYPE: ENDING
+   ========================================== */
+
+.slide-ending {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: var(--bg-gradient);
+}
+
+.slide-ending h1 {
+    font-family: var(--font-display);
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--text-gold);
+    margin-bottom: var(--spacing-lg);
+}
+
+.slide-ending p {
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+}
+
+.slide-ending .decorative {
+    font-size: 5rem;
+    opacity: 0.8;
+}
+
+/* ==========================================
+   SLIDE TYPE: DUBBING (FULL-SCREEN)
+   ========================================== */
+
+.slide-dubbing {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+}
+
+.slide-dubbing video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    cursor: default;
+}
+
+/* Ensure video controls are visible and accessible */
+.slide-dubbing video::-webkit-media-controls {
+    display: flex !important;
+}
+
+.slide-dubbing video::-webkit-media-controls-panel {
+    display: flex !important;
+}
+
+.slide-dubbing .fallback-message {
+    color: var(--text-gold);
+    font-size: 2rem;
+    text-align: center;
+    padding: var(--spacing-xl);
+    cursor: default;
+}
+
+.slide-dubbing .fallback-message small {
+    display: block;
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-top: var(--spacing-sm);
+}
+
+/* ==========================================
+   INSTRUCTIONAL OVERLAY
+   ========================================== */
+
+.instruction-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.instruction-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.instruction-content {
+    max-width: 600px;
+    text-align: center;
+    padding: var(--spacing-xl);
+}
+
+.instruction-content h1 {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-gold);
+    margin-bottom: var(--spacing-md);
+}
+
+.instruction-content p {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-lg);
+    line-height: 1.6;
+}
+
+.select-folder-btn {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dark-red);
+    background: var(--gold);
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+}
+
+.select-folder-btn:hover {
+    background: var(--light-gold);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.select-folder-btn:active {
+    transform: translateY(0);
+}
+
+.instruction-info {
+    margin-top: var(--spacing-xl);
+    text-align: left;
+    background: rgba(255, 255, 255, 0.05);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.instruction-info pre {
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    color: var(--text-gold);
+    background: rgba(0, 0, 0, 0.3);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    margin: var(--spacing-sm) 0;
+}
+
+.instruction-info .tip {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+.instruction-info kbd {
+    background: rgba(255, 215, 0, 0.2);
+    border: 1px solid var(--gold);
+    color: var(--text-gold);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.875rem;
+}
+
+/* ==========================================
+   RESPONSIVE ADJUSTMENTS
+   ========================================== */
+
+@media (max-width: 1024px) {
+    .slide-canvas {
+        max-width: 90vw;
+    }
+
+    .slide-cover h1 {
+        font-size: 3rem;
+    }
+
+    .slide-round-preview {
+        grid-template-columns: 1fr;
+    }
+
+    .scoring-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .slide-canvas {
+        max-width: 100vw;
+        border-radius: 0;
+    }
+
+    .scoring-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nav-controls {
+        gap: var(--spacing-sm);
+    }
+}

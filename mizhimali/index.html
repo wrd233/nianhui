@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>年会知识问答</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* File picker overlay */
+        #file-picker-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+        }
+
+        #file-picker-overlay.hidden {
+            display: none;
+        }
+
+        .picker-content {
+            text-align: center;
+            color: white;
+            padding: 3rem;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .picker-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .picker-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .select-folder-btn {
+            padding: 1rem 2.5rem;
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .select-folder-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        #folder-input {
+            display: none;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+        }
+
+        /* Presentation container */
+        #presentation-container {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        #presentation-container.active {
+            display: block;
+        }
+
+        /* Slide viewport */
+        .slide-viewport {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 2rem;
+        }
+
+        .slide-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 1280px;
+            aspect-ratio: 16 / 9;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+
+        /* Slides */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        .slide.prev {
+            transform: translateX(-100px);
+        }
+
+        /* Cover slide */
+        .slide.cover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .slide.cover .logo {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 2rem;
+            object-fit: contain;
+        }
+
+        .slide.cover h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .slide.cover .subtitle {
+            font-size: 2rem;
+            opacity: 0.9;
+        }
+
+        /* Rules slide */
+        .slide.rules {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .slide.rules h2 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .slide.rules ul {
+            list-style: none;
+            font-size: 1.5rem;
+            line-height: 2.5;
+            max-width: 800px;
+        }
+
+        .slide.rules li:before {
+            content: "✓ ";
+            margin-right: 0.5rem;
+        }
+
+        /* Section intro slide */
+        .slide.section-intro {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .slide.section-intro .round-number {
+            font-size: 6rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+
+        .slide.section-intro h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .slide.section-intro .description {
+            font-size: 1.8rem;
+            opacity: 0.9;
+        }
+
+        /* Question slide */
+        .slide.question {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .slide.question .question-content {
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .slide.question .prompt {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            color: #333;
+            min-height: 6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide.question .asset-container {
+            margin-bottom: 2rem;
+        }
+
+        .slide.question .asset-image {
+            max-width: 600px;
+            max-height: 300px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .slide.question .asset-audio {
+            margin: 1rem 0;
+        }
+
+        .slide.question audio {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .slide.question .answer-section {
+            margin-top: 2rem;
+        }
+
+        .slide.question .reveal-btn {
+            padding: 1rem 2.5rem;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .slide.question .reveal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .slide.question .answer {
+            margin-top: 1.5rem;
+            font-size: 2.5rem;
+            color: #e74c3c;
+            font-weight: bold;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            max-height: 0;
+            overflow: hidden;
+        }
+
+        .slide.question .answer.visible {
+            opacity: 1;
+            transform: scale(1);
+            max-height: 300px;
+        }
+
+        .slide.question .asset-placeholder {
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            color: #666;
+            font-size: 1.2rem;
+        }
+
+        /* Ending slide */
+        .slide.ending {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .slide.ending h2 {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+        }
+
+        .slide.ending p {
+            font-size: 2rem;
+            opacity: 0.9;
+        }
+
+        /* Navigation controls */
+        .nav-controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            color: white;
+            font-size: 1rem;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 1001;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Click zones for navigation */
+        .click-zone {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 20%;
+            cursor: pointer;
+            z-index: 100;
+            transition: background 0.2s;
+        }
+
+        .click-zone.left {
+            left: 0;
+        }
+
+        .click-zone.right {
+            right: 0;
+        }
+
+        .click-zone:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        /* Logo placeholder */
+        .logo-placeholder {
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- File picker overlay -->
+    <div id="file-picker-overlay">
+        <div class="picker-content">
+            <h1>📂 欢迎来到知识问答</h1>
+            <p>请选择包含题库的 content 文件夹</p>
+            <button class="select-folder-btn" onclick="document.getElementById('folder-input').click()">
+                选择 content 文件夹
+            </button>
+            <input type="file" id="folder-input" webkitdirectory multiple>
+            <div id="error-display" class="error-message"></div>
+        </div>
+    </div>
+
+    <!-- Presentation container -->
+    <div id="presentation-container">
+        <!-- Progress bar -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <!-- Slide viewport -->
+        <div class="slide-viewport">
+            <div class="slide-wrapper" id="slide-wrapper">
+                <!-- Slides will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- Navigation controls -->
+        <div class="nav-controls">
+            <button class="nav-btn" id="prev-btn" onclick="prevSlide()">◀</button>
+            <div class="slide-counter">
+                <span id="current-slide">1</span> / <span id="total-slides">1</span>
+            </div>
+            <button class="nav-btn" id="next-btn" onclick="nextSlide()">▶</button>
+        </div>
+
+        <!-- Click zones for navigation -->
+        <div class="click-zone left" onclick="prevSlide()"></div>
+        <div class="click-zone right" onclick="nextSlide()"></div>
+    </div>
+
+    <script>
+        // ===========================
+        // CONFIGURATION & COPY TEXT
+        // ===========================
+        const COPY = {
+            cover: {
+                title: "年会知识问答",
+                subtitle: "2026 新春特别版"
+            },
+            rules: {
+                title: "活动规则",
+                items: [
+                    "共分为多个环节，每个环节有不同类型的题目",
+                    "每题在屏幕上显示问题，点击按钮显示答案",
+                    "全员参与，答对有奖",
+                    "玩得开心，祝大家新春快乐！"
+                ]
+            },
+            ending: {
+                title: "恭喜完成所有题目！",
+                message: "祝大家2026年万事如意，龙腾虎跃！🎉"
+            }
+        };
+
+        // ===========================
+        // GLOBAL STATE
+        // ===========================
+        let contentData = null;
+        let slides = [];
+        let currentSlideIndex = 0;
+        let logoDataUrl = null;
+
+        // ===========================
+        // CONTENT LOADING
+        // ===========================
+        document.getElementById('folder-input').addEventListener('change', async (event) => {
+            const files = Array.from(event.target.files);
+
+            if (files.length === 0) {
+                showError("未选择文件夹");
+                return;
+            }
+
+            try {
+                await loadContent(files);
+                hideFilePicker();
+                initPresentation();
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+
+        function showError(message) {
+            document.getElementById('error-display').textContent = `❌ ${message}`;
+        }
+
+        function hideFilePicker() {
+            document.getElementById('file-picker-overlay').classList.add('hidden');
+            document.getElementById('presentation-container').classList.add('active');
+        }
+
+        async function loadContent(files) {
+            // Find bank.json
+            const bankFile = files.find(f => f.name === 'bank.json' || f.webkitRelativePath.endsWith('bank.json'));
+
+            if (!bankFile) {
+                throw new Error("未找到 bank.json 文件，请确保选择了正确的 content 文件夹");
+            }
+
+            // Parse bank.json
+            const bankText = await bankFile.text();
+            try {
+                contentData = JSON.parse(bankText);
+            } catch (e) {
+                throw new Error(`bank.json 格式错误: ${e.message}`);
+            }
+
+            // Validate bank.json structure
+            if (!contentData.rounds || !Array.isArray(contentData.rounds)) {
+                throw new Error("bank.json 缺少 rounds 数组");
+            }
+
+            console.log(`✓ 加载题库成功，共 ${contentData.rounds.length} 个环节`);
+
+            // Load logo (try multiple extensions)
+            await loadLogo(files);
+
+            // AUTO-DISCOVERY FOR ROUND 2 (image_guess)
+            // Look for jpg files in image/round2/ or assets/images/round2/
+            const round2 = contentData.rounds.find(r => r.key === 'image_guess' || r.round === 2);
+            if (round2) {
+                console.log("🔍正在扫描 Round 2 图片...");
+                const round2Images = files.filter(f => {
+                    const path = f.webkitRelativePath || f.name;
+                    // Match "image/round2/" or "assets/images/round2/" and ends with .jpg (case insensitive)
+                    return (path.includes('image/round2/') || path.includes('assets/images/round2/')) &&
+                        /\.jpg$/i.test(f.name);
+                });
+
+                if (round2Images.length > 0) {
+                    console.log(`✓ 发现 ${round2Images.length} 张 Round 2 图片，自动生成题目`);
+
+                    // Sort by filename to ensure consistent order
+                    round2Images.sort((a, b) => a.name.localeCompare(b.name));
+
+                    round2.items = round2Images.map((file, index) => {
+                        // Extract answer from filename (remove extension)
+                        const filename = file.name;
+                        const answer = filename.replace(/\.[^/.]+$/, ""); // Remove extension
+
+                        // Get relative path for asset loading
+                        // webkitRelativePath is full path like "content/image/round2/foo.jpg"
+                        // ensure we pass something loadAsset can handle. 
+                        // loadAsset matches by endWith or name, so webkitRelativePath is safe to pass if we want, 
+                        // but let's pass the relative path part.
+                        // Actually, loadAsset takes 'path', and matches against file.webkitRelativePath.endsWith(path).
+                        // So passing "image/round2/foo.jpg" is good.
+                        // But since we just need to identify the file, we can use the file object directly if we refactored,
+                        // but sticking to existing pattern: logic needs a string path.
+
+                        // We will use the full relative path after the root folder name.
+                        // f.webkitRelativePath usually is "Folder/Sub/File.jpg".
+                        // We want "Sub/File.jpg" roughly, but our loadAsset checks "endsWith".
+                        // So we can just use the filename or a clearer path if unique.
+                        // Let's use the path string found in the file object to be safe.
+
+                        return {
+                            id: `auto-q2-${index + 1}`,
+                            prompt: "这是一个谜语，请看图猜字", // Default prompt
+                            answer: answer,
+                            asset: file.webkitRelativePath
+                        };
+                    });
+                } else {
+                    console.log("⚠️ 未发现 Round 2 自动图片 (image/round2/*.jpg)，使用 bank.json 默认题目");
+                }
+            }
+
+            // Store files for asset loading
+            window.contentFiles = files;
+        }
+
+        async function loadLogo(files) {
+            const logoExtensions = ['svg', 'png', 'webp', 'jpg'];
+
+            for (const ext of logoExtensions) {
+                const logoFile = files.find(f =>
+                    f.name === `logo.${ext}` ||
+                    f.webkitRelativePath.endsWith(`logo.${ext}`)
+                );
+
+                if (logoFile) {
+                    try {
+                        logoDataUrl = await readFileAsDataUrl(logoFile);
+                        console.log(`✓ 加载 logo.${ext} 成功`);
+                        return;
+                    } catch (e) {
+                        console.warn(`无法加载 logo.${ext}:`, e);
+                    }
+                }
+            }
+
+            console.log("未找到 logo 文件，将使用占位符");
+        }
+
+        function readFileAsDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function loadAsset(assetPath) {
+            if (!window.contentFiles || !assetPath) return null;
+
+            const assetFile = window.contentFiles.find(f =>
+                f.webkitRelativePath.endsWith(assetPath) || f.name === assetPath.split('/').pop()
+            );
+
+            if (!assetFile) {
+                console.warn(`Asset not found: ${assetPath}`);
+                return null;
+            }
+
+            try {
+                return await readFileAsDataUrl(assetFile);
+            } catch (e) {
+                console.warn(`Failed to load asset ${assetPath}:`, e);
+                return null;
+            }
+        }
+
+        // ===========================
+        // SLIDE GENERATION
+        // ===========================
+        function initPresentation() {
+            slides = [];
+
+            // 1. Cover slide
+            slides.push({
+                type: 'cover',
+                content: COPY.cover
+            });
+
+            // 2. Rules slide
+            slides.push({
+                type: 'rules',
+                content: COPY.rules
+            });
+
+            // 3. Process rounds
+            contentData.rounds.forEach((round, roundIndex) => {
+                // Section intro slide
+                slides.push({
+                    type: 'section-intro',
+                    round: round,
+                    roundNumber: roundIndex + 1
+                });
+
+                // Question slides
+                if (round.items && Array.isArray(round.items)) {
+                    round.items.forEach((item, itemIndex) => {
+                        // Validate required fields
+                        if (!item.id || !item.prompt) {
+                            console.warn(`Skipping invalid question: missing id or prompt`, item);
+                            return;
+                        }
+
+                        slides.push({
+                            type: 'question',
+                            question: item,
+                            roundNumber: roundIndex + 1,
+                            questionNumber: itemIndex + 1
+                        });
+                    });
+                }
+            });
+
+            // 4. Ending slide
+            slides.push({
+                type: 'ending',
+                content: COPY.ending
+            });
+
+            console.log(`✓ 生成 ${slides.length} 张幻灯片`);
+
+            renderSlides();
+            updateNavigation();
+        }
+
+        async function renderSlides() {
+            const wrapper = document.getElementById('slide-wrapper');
+            wrapper.innerHTML = '';
+
+            for (let i = 0; i < slides.length; i++) {
+                const slide = slides[i];
+                const slideElement = await createSlideElement(slide, i);
+                wrapper.appendChild(slideElement);
+            }
+
+            // Show first slide
+            wrapper.children[0].classList.add('active');
+
+            // Update total count
+            document.getElementById('total-slides').textContent = slides.length;
+        }
+
+        async function createSlideElement(slideData, index) {
+            const div = document.createElement('div');
+            div.className = `slide ${slideData.type}`;
+            div.dataset.index = index;
+
+            switch (slideData.type) {
+                case 'cover':
+                    div.innerHTML = `
+            ${logoDataUrl
+                            ? `<img src="${logoDataUrl}" alt="Logo" class="logo">`
+                            : '<div class="logo-placeholder">🎉</div>'
+                        }
+            <h1>${slideData.content.title}</h1>
+            <div class="subtitle">${slideData.content.subtitle}</div>
+          `;
+                    break;
+
+                case 'rules':
+                    div.innerHTML = `
+            <h2>${slideData.content.title}</h2>
+            <ul>
+              ${slideData.content.items.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          `;
+                    break;
+
+                case 'section-intro':
+                    const roundTitle = slideData.round.key || `环节 ${slideData.roundNumber}`;
+                    const roundDesc = slideData.round.description || '';
+                    div.innerHTML = `
+            <div class="round-number">第${slideData.roundNumber}环节</div>
+            <h2>${roundTitle}</h2>
+            ${roundDesc ? `<div class="description">${roundDesc}</div>` : ''}
+          `;
+                    break;
+
+                case 'question':
+                    await renderQuestionSlide(div, slideData);
+                    break;
+
+                case 'ending':
+                    div.innerHTML = `
+            <h2>${slideData.content.title}</h2>
+            <p>${slideData.content.message}</p>
+          `;
+                    break;
+            }
+
+            return div;
+        }
+
+        async function renderQuestionSlide(element, slideData) {
+            const question = slideData.question;
+
+            let assetHtml = '';
+            if (question.asset) {
+                const assetData = await loadAsset(question.asset);
+
+                if (assetData) {
+                    // Determine if it's image or audio based on extension
+                    const extension = question.asset.split('.').pop().toLowerCase();
+                    const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+                    const audioExts = ['mp3', 'wav', 'ogg', 'm4a'];
+
+                    if (imageExts.includes(extension)) {
+                        assetHtml = `
+              <div class="asset-container">
+                <img src="${assetData}" alt="Question asset" class="asset-image">
+              </div>
+            `;
+                    } else if (audioExts.includes(extension)) {
+                        assetHtml = `
+              <div class="asset-container asset-audio">
+                <audio controls>
+                  <source src="${assetData}">
+                  您的浏览器不支持音频播放
+                </audio>
+              </div>
+            `;
+                    }
+                } else {
+                    assetHtml = `
+            <div class="asset-container">
+              <div class="asset-placeholder">资源未找到: ${question.asset}</div>
+            </div>
+          `;
+                }
+            }
+
+            const hasAnswer = question.answer && question.answer.trim().length > 0;
+            const answerId = `answer-${question.id}`;
+            const btnId = `btn-${question.id}`;
+
+            element.innerHTML = `
+        <div class="question-content">
+          <div class="prompt">${question.prompt}</div>
+          ${assetHtml}
+          ${hasAnswer ? `
+            <div class="answer-section">
+              <button class="reveal-btn" id="${btnId}" onclick="toggleAnswer('${answerId}', '${btnId}')">
+                显示答案
+              </button>
+              <div class="answer" id="${answerId}">${question.answer}</div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+        }
+
+        // ===========================
+        // ANSWER TOGGLE
+        // ===========================
+        function toggleAnswer(answerId, btnId) {
+            const answerEl = document.getElementById(answerId);
+            const btnEl = document.getElementById(btnId);
+
+            if (!answerEl || !btnEl) return;
+
+            if (answerEl.classList.contains('visible')) {
+                answerEl.classList.remove('visible');
+                btnEl.textContent = '显示答案';
+            } else {
+                answerEl.classList.add('visible');
+                btnEl.textContent = '隐藏答案';
+            }
+        }
+
+        // ===========================
+        // NAVIGATION
+        // ===========================
+        function goToSlide(index) {
+            if (index < 0 || index >= slides.length) return;
+
+            const wrapper = document.getElementById('slide-wrapper');
+            const allSlides = wrapper.children;
+
+            // Hide current slide
+            if (allSlides[currentSlideIndex]) {
+                allSlides[currentSlideIndex].classList.remove('active');
+                if (index > currentSlideIndex) {
+                    allSlides[currentSlideIndex].classList.add('prev');
+                } else {
+                    allSlides[currentSlideIndex].classList.remove('prev');
+                }
+            }
+
+            // Show new slide
+            currentSlideIndex = index;
+            if (allSlides[currentSlideIndex]) {
+                allSlides[currentSlideIndex].classList.add('active');
+                allSlides[currentSlideIndex].classList.remove('prev');
+            }
+
+            updateNavigation();
+        }
+
+        function nextSlide() {
+            goToSlide(currentSlideIndex + 1);
+        }
+
+        function prevSlide() {
+            goToSlide(currentSlideIndex - 1);
+        }
+
+        function updateNavigation() {
+            // Update counter
+            document.getElementById('current-slide').textContent = currentSlideIndex + 1;
+
+            // Update buttons
+            document.getElementById('prev-btn').disabled = currentSlideIndex === 0;
+            document.getElementById('next-btn').disabled = currentSlideIndex === slides.length - 1;
+
+            // Update progress bar
+            const progress = ((currentSlideIndex + 1) / slides.length) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+        }
+
+        // ===========================
+        // KEYBOARD NAVIGATION
+        // ===========================
+        document.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowRight':
+                case ' ':
+                case 'PageDown':
+                    e.preventDefault();
+                    nextSlide();
+                    break;
+                case 'ArrowLeft':
+                case 'PageUp':
+                    e.preventDefault();
+                    prevSlide();
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    goToSlide(0);
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    goToSlide(slides.length - 1);
+                    break;
+            }
+        });
+    </script>
+</body>
+
+</html>

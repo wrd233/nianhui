@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>声动信通</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Background Container -->
+    <div class="background"></div>
+
+    <!-- Main Presentation Container -->
+    <main class="presentation-container">
+        <!-- Slide Canvas (16:9 ratio) -->
+        <div id="slideCanvas" class="slide-canvas">
+            <!-- Slides will be dynamically injected here -->
+        </div>
+
+        <!-- Navigation Controls -->
+        <div class="nav-controls">
+            <button id="prevBtn" class="nav-btn" aria-label="Previous slide">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+
+            <div id="slideCounter" class="slide-counter">1 / 1</div>
+
+            <button id="nextBtn" class="nav-btn" aria-label="Next slide">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+
+            <button id="fullscreenBtn" class="nav-btn fullscreen-btn" aria-label="Toggle fullscreen">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path
+                        d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                    </path>
+                </svg>
+            </button>
+        </div>
+    </main>
+
+    <!-- Instructional Overlay -->
+    <div id="instructionOverlay" class="instruction-overlay">
+        <div class="instruction-content">
+            <h1>🎭 互动剧本杀演示</h1>
+            <p>欢迎！请选择您的资源文件夹以开始。</p>
+            <button id="selectFolderBtn" class="select-folder-btn">
+                📁 选择资源文件夹
+            </button>
+            <div class="instruction-info">
+                <p><strong>预期结构：</strong></p>
+                <pre>assets/
+  rounds/
+    round1/
+      video.mp4
+      poster.jpg
+      info.json
+    round2/
+      ...</pre>
+                <p class="tip">💡 按 <kbd>→</kbd> 或 <kbd>空格键</kbd> 切换幻灯片</p>
+                <p class="tip">💡 按 <kbd>F</kbd> 切换全屏模式</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

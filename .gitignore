@@ -1,0 +1,14 @@
+# System Files
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+
+# Dependencies
+node_modules/
+
+# User Requested
+assets/
+**/assets/

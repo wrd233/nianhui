@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信通大转盘 - 内部抽奖系统</title>
+    <meta name="description" content="信通公司内部随机抽取人员工具">
+    <style>
+        /* ========================================
+           CSS 样式：现代商务风格 + 老虎机视觉效果
+           ======================================== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        /* 主标题 */
+        .main-title {
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 30px 0 40px;
+            background: linear-gradient(90deg, #ffd700, #ffaa00, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            letter-spacing: 8px;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #8892b0;
+            margin-top: -30px;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+
+        /* 筛选面板 */
+        .filter-panel {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 0.9rem;
+            color: #ccd6f6;
+            font-weight: 500;
+        }
+
+        .filter-select {
+            padding: 12px 24px;
+            font-size: 1rem;
+            border: 2px solid #3d5a80;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            cursor: pointer;
+            min-width: 160px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:hover:not(:disabled) {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .filter-select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .filter-select option {
+            background: #16213e;
+            color: #fff;
+        }
+
+        /* 老虎机容器 */
+        .slot-machine {
+            background: linear-gradient(180deg, #2d2d44 0%, #1a1a2e 100%);
+            border-radius: 20px;
+            padding: 30px 40px;
+            box-shadow:
+                0 0 0 4px #ffd700,
+                0 0 0 8px #16213e,
+                0 10px 40px rgba(0, 0, 0, 0.5),
+                inset 0 2px 10px rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .reels-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .reel-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .reel-title {
+            font-size: 1rem;
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        /* 单个转轮 */
+        .reel {
+            width: 140px;
+            height: 180px;
+            background: linear-gradient(180deg, #0a0a15 0%, #1a1a2e 50%, #0a0a15 100%);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            box-shadow:
+                inset 0 0 20px rgba(0, 0, 0, 0.8),
+                0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 转轮内容 */
+        .reel-content {
+            position: absolute;
+            width: 100%;
+            transition: transform 0.1s linear;
+        }
+
+        .reel-item {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #ccd6f6;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* 高亮中间行 */
+        .reel::before,
+        .reel::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 60px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .reel::before {
+            top: 0;
+            background: linear-gradient(180deg, rgba(26, 26, 46, 0.95) 0%, transparent 100%);
+        }
+
+        .reel::after {
+            bottom: 0;
+            background: linear-gradient(0deg, rgba(26, 26, 46, 0.95) 0%, transparent 100%);
+        }
+
+        /* 中间高亮框 */
+        .reel-highlight {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 130px;
+            height: 56px;
+            border: 2px solid #ffd700;
+            border-radius: 6px;
+            box-shadow:
+                0 0 10px rgba(255, 215, 0, 0.3),
+                inset 0 0 10px rgba(255, 215, 0, 0.1);
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        /* 锁定状态指示 */
+        .reel.locked {
+            opacity: 0.7;
+        }
+
+        .reel.locked::before {
+            content: '🔒';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.8rem;
+            z-index: 25;
+            background: none;
+            height: auto;
+        }
+
+        /* 开始按钮（拉杆风格） */
+        .lever-button {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .start-btn {
+            padding: 20px 60px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            background: linear-gradient(180deg, #ffd700 0%, #ffaa00 50%, #ff8c00 100%);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow:
+                0 6px 0 #b8860b,
+                0 10px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.15s ease;
+            letter-spacing: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .start-btn:hover:not(:disabled)::before {
+            left: 100%;
+        }
+
+        .start-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow:
+                0 8px 0 #b8860b,
+                0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .start-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow:
+                0 2px 0 #b8860b,
+                0 5px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .start-btn:disabled {
+            background: linear-gradient(180deg, #666 0%, #444 100%);
+            box-shadow: 0 4px 0 #333;
+            cursor: not-allowed;
+            color: #999;
+        }
+
+        /* 结果显示区 */
+        .result-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #3d5a80;
+            border-radius: 15px;
+            padding: 25px 40px;
+            text-align: center;
+            min-width: 400px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .result-panel.success {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .result-label {
+            font-size: 1rem;
+            color: #8892b0;
+            margin-bottom: 15px;
+        }
+
+        .result-content {
+            font-size: 1.5rem;
+            color: #ffd700;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .result-content.empty {
+            color: #8892b0;
+            font-size: 1.1rem;
+        }
+
+        /* 消息/错误提示区 */
+        .message-area {
+            margin-top: 20px;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .message-area.visible {
+            opacity: 1;
+        }
+
+        .message-area.error {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #ff6b6b;
+        }
+
+        .message-area.info {
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid #3498db;
+            color: #5dade2;
+        }
+
+        /* 底部信息 */
+        .footer {
+            margin-top: auto;
+            padding-top: 40px;
+            color: #4a5568;
+            font-size: 0.85rem;
+        }
+
+        /* 响应式布局 */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2rem;
+                letter-spacing: 4px;
+            }
+
+            .filter-panel {
+                gap: 15px;
+            }
+
+            .reels-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .reel {
+                width: 180px;
+            }
+
+            .slot-machine {
+                padding: 20px;
+            }
+
+            .result-panel {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .start-btn {
+                padding: 15px 40px;
+                font-size: 1.2rem;
+            }
+        }
+
+        /* 旋转动画关键帧 */
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        .spinning .slot-machine {
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 主标题 -->
+    <h1 class="main-title">信通大转盘</h1>
+    <p class="subtitle">内部人员随机抽取系统</p>
+
+    <!-- 筛选面板 -->
+    <div class="filter-panel">
+        <div class="filter-group">
+            <label class="filter-label" for="deptFilter">部门筛选</label>
+            <select id="deptFilter" class="filter-select">
+                <option value="">不限</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label" for="genderFilter">性别筛选</label>
+            <select id="genderFilter" class="filter-select">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 老虎机主体 -->
+    <div class="slot-machine">
+        <div class="reels-container">
+            <!-- 部门转轮 -->
+            <div class="reel-wrapper">
+                <div class="reel-title">部 门</div>
+                <div class="reel" id="reelDept">
+                    <div class="reel-content" id="reelDeptContent"></div>
+                    <div class="reel-highlight"></div>
+                </div>
+            </div>
+            <!-- 性别转轮 -->
+            <div class="reel-wrapper">
+                <div class="reel-title">性 别</div>
+                <div class="reel" id="reelGender">
+                    <div class="reel-content" id="reelGenderContent"></div>
+                    <div class="reel-highlight"></div>
+                </div>
+            </div>
+            <!-- 姓名转轮 -->
+            <div class="reel-wrapper">
+                <div class="reel-title">姓 名</div>
+                <div class="reel" id="reelName">
+                    <div class="reel-content" id="reelNameContent"></div>
+                    <div class="reel-highlight"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 开始按钮 -->
+    <div class="lever-button">
+        <button id="startBtn" class="start-btn">开始摇号</button>
+    </div>
+
+    <!-- 结果显示区 -->
+    <div class="result-panel" id="resultPanel">
+        <div class="result-label">本次抽中人员</div>
+        <div class="result-content empty" id="resultContent">等待抽取...</div>
+    </div>
+
+    <!-- 消息提示区 -->
+    <div class="message-area" id="messageArea"></div>
+
+    <!-- 底部信息 -->
+    <div class="footer">
+        © 2026 信通公司 · 内部使用
+    </div>
+
+    <script>
+        /* ========================================
+           JavaScript 逻辑
+           ======================================== */
+
+        // ==========================================
+        // 数据模型：信通公司人员数据
+        // 可根据实际需要替换此数据集
+        // ==========================================
+        const people = [
+            // 网络运维部
+            { department: "网络运维部", gender: "男", name: "张伟" },
+            { department: "网络运维部", gender: "男", name: "李强" },
+            { department: "网络运维部", gender: "女", name: "王芳" },
+            { department: "网络运维部", gender: "男", name: "刘洋" },
+            { department: "网络运维部", gender: "女", name: "陈静" },
+            { department: "网络运维部", gender: "男", name: "赵鹏" },
+
+            // 系统平台部
+            { department: "系统平台部", gender: "男", name: "孙明" },
+            { department: "系统平台部", gender: "女", name: "周丽" },
+            { department: "系统平台部", gender: "男", name: "吴涛" },
+            { department: "系统平台部", gender: "男", name: "郑凯" },
+            { department: "系统平台部", gender: "女", name: "黄婷" },
+
+            // 信息安全部
+            { department: "信息安全部", gender: "男", name: "冯刚" },
+            { department: "信息安全部", gender: "女", name: "朱婷婷" },
+            { department: "信息安全部", gender: "男", name: "胡军" },
+            { department: "信息安全部", gender: "女", name: "林雪" },
+
+            // 综合管理部
+            { department: "综合管理部", gender: "女", name: "徐敏" },
+            { department: "综合管理部", gender: "男", name: "马超" },
+            { department: "综合管理部", gender: "女", name: "杨柳" },
+            { department: "综合管理部", gender: "男", name: "罗军" },
+
+            // 客户服务部
+            { department: "客户服务部", gender: "女", name: "高圆圆" },
+            { department: "客户服务部", gender: "男", name: "梁博" },
+            { department: "客户服务部", gender: "女", name: "谢娜" },
+            { department: "客户服务部", gender: "女", name: "何洁" },
+
+            // 技术研发部
+            { department: "技术研发部", gender: "男", name: "韩磊" },
+            { department: "技术研发部", gender: "男", name: "唐宇" },
+            { department: "技术研发部", gender: "女", name: "宋琳" },
+            { department: "技术研发部", gender: "男", name: "邓超" },
+            { department: "技术研发部", gender: "女", name: "彭丽媛" }
+        ];
+
+        // ==========================================
+        // 从数据中提取唯一的部门和性别列表
+        // ==========================================
+        const departments = [...new Set(people.map(p => p.department))];
+        const genders = [...new Set(people.map(p => p.gender))];
+
+        // ==========================================
+        // DOM 元素引用
+        // ==========================================
+        const deptFilter = document.getElementById('deptFilter');
+        const genderFilter = document.getElementById('genderFilter');
+        const startBtn = document.getElementById('startBtn');
+        const resultPanel = document.getElementById('resultPanel');
+        const resultContent = document.getElementById('resultContent');
+        const messageArea = document.getElementById('messageArea');
+
+        const reelDept = document.getElementById('reelDept');
+        const reelGender = document.getElementById('reelGender');
+        const reelName = document.getElementById('reelName');
+        const reelDeptContent = document.getElementById('reelDeptContent');
+        const reelGenderContent = document.getElementById('reelGenderContent');
+        const reelNameContent = document.getElementById('reelNameContent');
+
+        // ==========================================
+        // 转轮配置
+        // ==========================================
+        const REEL_ITEM_HEIGHT = 60;  // 每个项目的高度（像素）
+        const REEL_VISIBLE_ITEMS = 3; // 可见项目数量
+        const SPIN_DURATION = 2000;   // 基础旋转时间（毫秒）
+        const STOP_DELAY = 500;       // 各转轮之间的停止延迟
+
+        // 当前旋转状态
+        let isSpinning = false;
+        let selectedPerson = null;
+
+        // ==========================================
+        // 初始化：填充筛选下拉框
+        // ==========================================
+        function initFilters() {
+            // 填充部门选项
+            departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept;
+                option.textContent = dept;
+                deptFilter.appendChild(option);
+            });
+
+            // 填充性别选项
+            genders.forEach(gender => {
+                const option = document.createElement('option');
+                option.value = gender;
+                option.textContent = gender;
+                genderFilter.appendChild(option);
+            });
+        }
+
+        // ==========================================
+        // 筛选逻辑：根据当前筛选条件获取符合条件的人员
+        // ==========================================
+        function getEligiblePeople() {
+            const selectedDept = deptFilter.value;
+            const selectedGender = genderFilter.value;
+
+            return people.filter(person => {
+                // 如果选择了特定部门，检查是否匹配
+                if (selectedDept && person.department !== selectedDept) {
+                    return false;
+                }
+                // 如果选择了特定性别，检查是否匹配
+                if (selectedGender && person.gender !== selectedGender) {
+                    return false;
+                }
+                return true;
+            });
+        }
+
+        // ==========================================
+        // 随机选择逻辑（核心）
+        // 使用均匀随机算法从符合条件的人员中选择一人
+        // ==========================================
+        function randomSelectPerson(eligiblePeople) {
+            if (eligiblePeople.length === 0) return null;
+
+            // 使用 Math.random() 进行均匀随机选择
+            const randomIndex = Math.floor(Math.random() * eligiblePeople.length);
+            return eligiblePeople[randomIndex];
+        }
+
+        // ==========================================
+        // 生成转轮内容
+        // 创建足够多的项目以支持滚动动画
+        // ==========================================
+        function generateReelItems(items, targetValue, reelContent) {
+            reelContent.innerHTML = '';
+
+            // 为了实现无缝滚动，我们需要重复项目多次
+            // 并确保目标值在中间位置
+            const repeatCount = 10;
+            const allItems = [];
+
+            for (let i = 0; i < repeatCount; i++) {
+                items.forEach(item => {
+                    allItems.push(item);
+                });
+            }
+
+            // 随机打乱顺序（除了最后要显示的目标值）
+            for (let i = allItems.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allItems[i], allItems[j]] = [allItems[j], allItems[i]];
+            }
+
+            // 确保目标值在合适的位置（用于最终停止）
+            const targetIndex = allItems.length - 2;
+            allItems[targetIndex] = targetValue;
+
+            // 创建 DOM 元素
+            allItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'reel-item';
+                div.textContent = item;
+                reelContent.appendChild(div);
+            });
+
+            return targetIndex;
+        }
+
+        // ==========================================
+        // 显示锁定的转轮（单个值，不旋转）
+        // ==========================================
+        function showLockedReel(value, reelContent) {
+            reelContent.innerHTML = '';
+
+            // 创建三个项目，中间是目标值
+            for (let i = 0; i < 3; i++) {
+                const div = document.createElement('div');
+                div.className = 'reel-item';
+                div.textContent = i === 1 ? value : '';
+                reelContent.appendChild(div);
+            }
+
+            // 定位到中间
+            reelContent.style.transform = `translateY(0px)`;
+        }
+
+        // ==========================================
+        // 转轮动画逻辑
+        // ==========================================
+        function animateReel(reelContent, targetIndex, duration, isLocked = false) {
+            return new Promise(resolve => {
+                if (isLocked) {
+                    // 锁定的转轮不旋转
+                    resolve();
+                    return;
+                }
+
+                const startTime = Date.now();
+                const startPos = 0;
+                // 计算目标位置（使目标项目在中间可见区域）
+                const targetPos = -((targetIndex - 1) * REEL_ITEM_HEIGHT);
+
+                // 动画中间会快速滚动一段距离，然后减速
+                const totalDistance = Math.abs(targetPos) + (REEL_ITEM_HEIGHT * 30);
+
+                function animate() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+
+                    // 使用缓出函数实现减速效果
+                    const easeOut = 1 - Math.pow(1 - progress, 3);
+
+                    // 计算当前位置
+                    let currentPos;
+                    if (progress < 0.7) {
+                        // 快速滚动阶段
+                        currentPos = -(easeOut * totalDistance * 0.7);
+                    } else {
+                        // 减速并精确停在目标位置
+                        const slowProgress = (progress - 0.7) / 0.3;
+                        const slowEase = 1 - Math.pow(1 - slowProgress, 2);
+                        currentPos = targetPos - (1 - slowEase) * REEL_ITEM_HEIGHT * 3;
+                    }
+
+                    // 应用变换
+                    reelContent.style.transform = `translateY(${currentPos}px)`;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        // 确保最终精确停在目标位置
+                        reelContent.style.transform = `translateY(${targetPos}px)`;
+                        resolve();
+                    }
+                }
+
+                requestAnimationFrame(animate);
+            });
+        }
+
+        // ==========================================
+        // 显示消息
+        // ==========================================
+        function showMessage(message, type = 'error') {
+            messageArea.textContent = message;
+            messageArea.className = `message-area visible ${type}`;
+
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                messageArea.className = 'message-area';
+            }, 3000);
+        }
+
+        // ==========================================
+        // 隐藏消息
+        // ==========================================
+        function hideMessage() {
+            messageArea.className = 'message-area';
+        }
+
+        // ==========================================
+        // 更新结果显示
+        // ==========================================
+        function updateResult(person) {
+            if (person) {
+                resultContent.textContent = `${person.department} / ${person.gender} / ${person.name}`;
+                resultContent.className = 'result-content';
+                resultPanel.className = 'result-panel success';
+            } else {
+                resultContent.textContent = '等待抽取...';
+                resultContent.className = 'result-content empty';
+                resultPanel.className = 'result-panel';
+            }
+        }
+
+        // ==========================================
+        // 设置控件禁用状态
+        // ==========================================
+        function setControlsDisabled(disabled) {
+            startBtn.disabled = disabled;
+            deptFilter.disabled = disabled;
+            genderFilter.disabled = disabled;
+
+            if (disabled) {
+                document.body.classList.add('spinning');
+            } else {
+                document.body.classList.remove('spinning');
+            }
+        }
+
+        // ==========================================
+        // 主抽奖逻辑
+        // ==========================================
+        async function startSpin() {
+            if (isSpinning) return;
+
+            hideMessage();
+
+            // 1. 获取符合筛选条件的人员
+            const eligiblePeople = getEligiblePeople();
+
+            // 2. 检查是否有可抽取的人员
+            if (eligiblePeople.length === 0) {
+                showMessage('当前筛选条件下没有可抽取的人员', 'error');
+                return;
+            }
+
+            // 3. 【核心】先随机选定最终结果
+            //    这是关键：在动画开始前就确定结果，动画只是视觉表演
+            selectedPerson = randomSelectPerson(eligiblePeople);
+
+            // 4. 禁用控件，开始动画
+            isSpinning = true;
+            setControlsDisabled(true);
+            updateResult(null);
+
+            // 5. 准备转轮数据
+            const isDeptLocked = deptFilter.value !== '';
+            const isGenderLocked = genderFilter.value !== '';
+
+            // 获取各列需要显示的选项列表
+            const deptList = isDeptLocked ? [selectedPerson.department] : departments;
+            const genderList = isGenderLocked ? [selectedPerson.gender] : genders;
+            const nameList = eligiblePeople.map(p => p.name);
+
+            // 6. 设置转轮锁定状态的视觉提示
+            reelDept.classList.toggle('locked', isDeptLocked);
+            reelGender.classList.toggle('locked', isGenderLocked);
+
+            // 7. 生成转轮内容并获取目标位置
+            let deptTargetIndex, genderTargetIndex, nameTargetIndex;
+
+            if (isDeptLocked) {
+                // 部门已锁定，显示固定值
+                showLockedReel(selectedPerson.department, reelDeptContent);
+            } else {
+                deptTargetIndex = generateReelItems(deptList, selectedPerson.department, reelDeptContent);
+            }
+
+            if (isGenderLocked) {
+                // 性别已锁定，显示固定值
+                showLockedReel(selectedPerson.gender, reelGenderContent);
+            } else {
+                genderTargetIndex = generateReelItems(genderList, selectedPerson.gender, reelGenderContent);
+            }
+
+            // 姓名转轮始终旋转
+            nameTargetIndex = generateReelItems(nameList, selectedPerson.name, reelNameContent);
+
+            // 8. 按顺序停止转轮：部门 -> 性别 -> 姓名
+            //    各转轮之间有延迟，营造老虎机效果
+
+            // 启动所有转轮动画
+            const animations = [];
+
+            // 部门转轮
+            animations.push(
+                animateReel(reelDeptContent, deptTargetIndex, SPIN_DURATION, isDeptLocked)
+            );
+
+            // 性别转轮（延迟停止）
+            animations.push(
+                new Promise(resolve => {
+                    setTimeout(async () => {
+                        await animateReel(reelGenderContent, genderTargetIndex, SPIN_DURATION, isGenderLocked);
+                        resolve();
+                    }, STOP_DELAY);
+                })
+            );
+
+            // 姓名转轮（延迟更长时间停止）
+            animations.push(
+                new Promise(resolve => {
+                    setTimeout(async () => {
+                        await animateReel(reelNameContent, nameTargetIndex, SPIN_DURATION, false);
+                        resolve();
+                    }, STOP_DELAY * 2);
+                })
+            );
+
+            // 等待所有动画完成
+            await Promise.all(animations);
+
+            // 9. 动画完成，显示结果
+            updateResult(selectedPerson);
+
+            // 10. 恢复控件
+            isSpinning = false;
+            setControlsDisabled(false);
+        }
+
+        // ==========================================
+        // 事件绑定
+        // ==========================================
+        startBtn.addEventListener('click', startSpin);
+
+        // ==========================================
+        // 初始化应用
+        // ==========================================
+        initFilters();
+
+        // 初始化转轮显示（显示占位内容）
+        function initReels() {
+            // 部门转轮
+            reelDeptContent.innerHTML = '';
+            ['', departments[0] || '-', ''].forEach((item, i) => {
+                const div = document.createElement('div');
+                div.className = 'reel-item';
+                div.textContent = i === 1 ? item : '';
+                reelDeptContent.appendChild(div);
+            });
+
+            // 性别转轮
+            reelGenderContent.innerHTML = '';
+            ['', genders[0] || '-', ''].forEach((item, i) => {
+                const div = document.createElement('div');
+                div.className = 'reel-item';
+                div.textContent = i === 1 ? item : '';
+                reelGenderContent.appendChild(div);
+            });
+
+            // 姓名转轮
+            reelNameContent.innerHTML = '';
+            ['', people[0]?.name || '-', ''].forEach((item, i) => {
+                const div = document.createElement('div');
+                div.className = 'reel-item';
+                div.textContent = i === 1 ? item : '';
+                reelNameContent.appendChild(div);
+            });
+        }
+
+        initReels();
+    </script>
+</body>
+
+</html>
