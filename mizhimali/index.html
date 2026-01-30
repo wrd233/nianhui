@@ -491,6 +491,60 @@
             transform: none;
             opacity: 1;
         }
+
+        /* Round 4 Answer Board */
+        .slide.round4-answer-board {
+            background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+            color: #333;
+        }
+
+        .slide.round4-answer-board h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            max-width: 800px;
+        }
+
+        .slide.round4-answer-board .qr-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .slide.round4-answer-board .qr-code {
+            width: 200px;
+            height: 200px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            margin-bottom: 1rem;
+            background: white;
+            /* Placeholder background */
+        }
+
+        .slide.round4-answer-board .answer-list-container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 2rem;
+            max-height: 40vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide.round4-answer-board .answer-list h3 {
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #667eea;
+        }
+
+        .slide.round4-answer-board .answer-item {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 
@@ -772,6 +826,15 @@
                             roundNumber: roundIndex + 1,
                             questionNumber: itemIndex + 1
                         });
+
+                        // For Round 4 (Open Riddle) or matching key, add Board slide
+                        if (round.round === 4 || round.key === 'open_riddle') {
+                            slides.push({
+                                type: 'round4-answer-board',
+                                roundNumber: roundIndex + 1,
+                                question: item // Pass question data to display context if needed
+                            });
+                        }
                     });
                 }
             });
@@ -844,7 +907,25 @@
                     break;
 
                 case 'question':
-                    await renderQuestionSlide(div, slideData);
+                    // For Round 4, hide the "Show Answer" button
+                    const hideAnswer = slideData.roundNumber === 4;
+                    await renderQuestionSlide(div, slideData, hideAnswer);
+                    break;
+
+                case 'round4-answer-board':
+                    div.innerHTML = `
+                        <h2>${slideData.question.prompt}</h2>
+                        <div class="qr-container">
+                            <img src="assets/images/qr_placeholder.png" alt="Scan to Answer" class="qr-code">
+                            <p>扫码提交你的奇思妙想</p>
+                        </div>
+                        <div class="answer-list-container">
+                            <h3>大家的回答</h3>
+                            <div class="answer-list">
+                                <div class="answer-item">等待回答...</div>
+                            </div>
+                        </div>
+                    `;
                     break;
 
                 case 'ending':
@@ -858,10 +939,11 @@
             return div;
         }
 
-        async function renderQuestionSlide(element, slideData) {
+        async function renderQuestionSlide(element, slideData, hideAnswer = false) {
             const question = slideData.question;
 
             let assetHtml = '';
+            // ... (asset logic remains same, skipping for brevity in search)
             if (question.asset) {
                 const assetData = await loadAsset(question.asset);
 
@@ -904,7 +986,7 @@
         <div class="question-content">
           <div class="prompt">${question.prompt}</div>
           ${assetHtml}
-          ${hasAnswer ? `
+          ${hasAnswer && !hideAnswer ? `
             <div class="answer-section">
               <button class="reveal-btn" id="${btnId}" onclick="toggleAnswer('${answerId}', '${btnId}')">
                 显示答案
