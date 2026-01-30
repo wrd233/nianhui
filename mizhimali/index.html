@@ -423,6 +423,27 @@
             font-size: 4rem;
             margin-bottom: 2rem;
         }
+
+        /* Round 2 Specific Modifications */
+        .slide.round-2 .prompt {
+            display: none;
+        }
+
+        .slide.round-2 .asset-image {
+            max-width: 900px;
+            /* Increased from 600px */
+            max-height: 60vh;
+            /* Use viewport height instead of fixed pixels */
+        }
+
+        .slide.round-2 .question-content {
+            margin-top: -3rem;
+            /* Move content up */
+        }
+
+        .slide.round-2 .asset-container {
+            margin-bottom: 2rem;
+        }
     </style>
 </head>
 
@@ -739,7 +760,9 @@
 
         async function createSlideElement(slideData, index) {
             const div = document.createElement('div');
-            div.className = `slide ${slideData.type}`;
+            // Add round-specific class if available (e.g., round-2)
+            const roundClass = slideData.roundNumber ? `round-${slideData.roundNumber}` : '';
+            div.className = `slide ${slideData.type} ${roundClass}`;
             div.dataset.index = index;
 
             switch (slideData.type) {
