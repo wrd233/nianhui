@@ -6,6 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>年会知识问答</title>
     <style>
+        :root {
+            --primary-color: #C41E3A;
+            --gold: #FFD700;
+            --text-gold: #FFD700;
+            /* Changed to a very subtle reddish transparency to let background pop, avoiding "gray" */
+            --bg-dark: rgba(40, 0, 10, 0.55);
+            --panel-border: rgba(255, 215, 0, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,13 +23,19 @@
         }
 
         body {
-            font-family: 'Microsoft YaHei', 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Outfit', 'Microsoft YaHei', sans-serif;
+            background-color: #330000;
+            /* Deep red fallback */
+            /* Background will be set by JS via inline style for image */
             overflow: hidden;
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: white;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
         /* File picker overlay */
@@ -46,13 +62,14 @@
             color: white;
             padding: 3rem;
             border-radius: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--panel-border);
         }
 
         .picker-content h1 {
             font-size: 2.5rem;
             margin-bottom: 1rem;
+            color: var(--gold);
         }
 
         .picker-content p {
@@ -64,18 +81,19 @@
         .select-folder-btn {
             padding: 1rem 2.5rem;
             font-size: 1.3rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: var(--gold);
+            color: #8B1538;
             border: none;
-            border-radius: 50px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            font-weight: bold;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         .select-folder-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
         }
 
         #folder-input {
@@ -85,7 +103,6 @@
         .error-message {
             color: #ff6b6b;
             margin-top: 1rem;
-            font-size: 1.1rem;
         }
 
         /* Presentation container */
@@ -106,7 +123,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
             padding: 2rem;
         }
 
@@ -115,10 +131,23 @@
             width: 100%;
             max-width: 1280px;
             aspect-ratio: 16 / 9;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4);
+            background: var(--bg-dark);
+            border: 2px solid var(--panel-border);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
             overflow: hidden;
+            transition: all 0.5s ease;
+            backdrop-filter: blur(12px);
+            /* Increased blur slightly */
+        }
+
+        /* NO CARD MODE for Cover/Section Intro */
+        .slide-wrapper[data-current-type="cover"],
+        .slide-wrapper[data-current-type="section-intro"] {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
         }
 
         /* Slides */
@@ -133,200 +162,191 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            text-align: center;
+            /* Enforce center alignment for text */
             opacity: 0;
-            transform: translateX(100px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: scale(0.95);
+            transition: opacity 0.4s ease, transform 0.4s ease;
             pointer-events: none;
         }
 
         .slide.active {
             opacity: 1;
-            transform: translateX(0);
+            transform: scale(1);
             pointer-events: auto;
         }
 
-        .slide.prev {
-            transform: translateX(-100px);
-        }
-
-        /* Cover slide */
-        .slide.cover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* Universal Text Styles */
+        h1,
+        h2,
+        .prompt,
+        .answer,
+        .subtitle,
+        p,
+        li {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
             color: white;
-            text-align: center;
         }
 
-        .slide.cover .logo {
-            width: 150px;
-            height: 150px;
-            margin-bottom: 2rem;
-            object-fit: contain;
-        }
-
-        .slide.cover h1 {
+        h1 {
+            color: var(--gold);
             font-size: 4rem;
             margin-bottom: 1rem;
-            font-weight: bold;
         }
 
-        .slide.cover .subtitle {
-            font-size: 2rem;
-            opacity: 0.9;
-        }
-
-        /* Rules slide */
-        .slide.rules {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-
-        .slide.rules h2 {
+        h2 {
+            color: var(--gold);
             font-size: 3rem;
             margin-bottom: 2rem;
         }
 
+        .subtitle {
+            font-size: 2rem;
+            opacity: 0.9;
+            color: #eee;
+        }
+
+        /* Rules */
         .slide.rules ul {
             list-style: none;
             font-size: 1.5rem;
             line-height: 2.5;
             max-width: 800px;
+            margin: 0 auto;
+            /* Center the list block */
+            text-align: left;
+            /* Keep list item text aligned left for readability */
+        }
+
+        .slide.rules li {
+            display: flex;
+            align-items: center;
+            /* Vertical center alignment */
         }
 
         .slide.rules li:before {
             content: "✓ ";
+            color: var(--gold);
             margin-right: 0.5rem;
-        }
-
-        /* Section intro slide */
-        .slide.section-intro {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            text-align: center;
-        }
-
-        .slide.section-intro .round-number {
-            font-size: 6rem;
             font-weight: bold;
-            margin-bottom: 1rem;
-            opacity: 0.8;
         }
 
-        .slide.section-intro h2 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .slide.section-intro .description {
-            font-size: 1.8rem;
-            opacity: 0.9;
-        }
-
-        /* Question slide */
-        .slide.question {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        }
-
+        /* Question Styles */
         .slide.question .question-content {
             width: 100%;
-            max-width: 900px;
-            text-align: center;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Center children */
         }
 
         .slide.question .prompt {
-            font-size: 5rem;
+            font-size: 3.5rem;
             margin-bottom: 2rem;
-            color: #333;
-            min-height: 6rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .slide.question .asset-container {
-            margin-bottom: 2rem;
-        }
-
-        .slide.question .asset-image {
-            max-width: 600px;
-            max-height: 300px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .slide.question .asset-audio {
-            margin: 1rem 0;
-        }
-
-        .slide.question audio {
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .slide.question .answer-section {
-            margin-top: 2rem;
-        }
-
-        .slide.question .reveal-btn {
-            padding: 1rem 2.5rem;
-            font-size: 1.5rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .slide.question .reveal-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .slide.question .answer {
-            margin-top: 1.5rem;
-            font-size: 2.5rem;
-            color: #e74c3c;
             font-weight: bold;
+            min-height: 4rem;
+            width: 100%;
+        }
+
+        .answer {
+            color: var(--gold) !important;
+            font-size: 3rem;
+            font-weight: bold;
+            margin-top: 1.5rem;
             opacity: 0;
-            transform: scale(0.9);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            max-height: 0;
-            overflow: hidden;
+            transition: opacity 0.3s;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
         }
 
-        .slide.question .answer.visible {
+        .answer.visible {
             opacity: 1;
-            transform: scale(1);
-            max-height: 300px;
         }
 
-        .slide.question .asset-placeholder {
-            padding: 2rem;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            color: #666;
+        .reveal-btn {
+            padding: 0.8rem 2rem;
             font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--panel-border);
+            color: var(--gold);
+            border-radius: 8px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            margin-top: 1rem;
         }
 
-        /* Ending slide */
-        .slide.ending {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            color: white;
+        .reveal-btn:hover {
+            background: rgba(255, 215, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Assets */
+        .asset-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+
+        .asset-image {
+            max-width: 100%;
+            max-height: 45vh;
+            /* Limit height to prevent overflow */
+            border-radius: 8px;
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            object-fit: contain;
+        }
+
+        .asset-placeholder {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #ccc;
+        }
+
+        /* Round 4 Board */
+        .slide.round4-answer-board .answer-list-container {
+            width: 100%;
+            /* Use fuller width */
+            max-width: 900px;
+            background: rgba(40, 0, 10, 0.3);
+            /* Match theme */
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 2rem;
+            max-height: 50vh;
+            overflow-y: auto;
+            margin: 0 auto;
+        }
+
+        .slide.round4-answer-board .answer-list h3 {
+            color: var(--gold);
+            margin-bottom: 1rem;
             text-align: center;
         }
 
-        .slide.ending h2 {
-            font-size: 4rem;
-            margin-bottom: 2rem;
+        .answer-item {
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 0.5rem;
+            padding: 0.8rem;
+            border-radius: 4px;
+            color: white;
+            text-shadow: none;
+            text-align: left;
         }
 
-        .slide.ending p {
-            font-size: 2rem;
-            opacity: 0.9;
+        .qr-code {
+            width: 150px;
+            height: 150px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
         }
 
-        /* Navigation controls */
+        /* Navigation */
         .nav-controls {
             position: fixed;
             bottom: 2rem;
@@ -336,26 +356,27 @@
             gap: 1rem;
             align-items: center;
             background: rgba(0, 0, 0, 0.6);
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            backdrop-filter: blur(10px);
+            padding: 0.8rem 2rem;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             z-index: 1000;
         }
 
         .nav-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
             width: 40px;
             height: 40px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 1.2rem;
-            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .nav-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .nav-btn:disabled {
@@ -363,40 +384,29 @@
             cursor: not-allowed;
         }
 
-        .slide-counter {
-            color: white;
-            font-size: 1rem;
-            min-width: 100px;
-            text-align: center;
-        }
-
-        /* Progress bar */
         .progress-bar {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.2);
-            z-index: 1001;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: var(--gold);
             width: 0%;
-            transition: width 0.3s ease;
+            transition: width 0.3s;
         }
 
-        /* Click zones for navigation */
+        /* Click zones */
         .click-zone {
             position: fixed;
             top: 0;
             bottom: 0;
             width: 20%;
-            cursor: pointer;
-            z-index: 100;
-            transition: background 0.2s;
+            z-index: 50;
         }
 
         .click-zone.left {
@@ -407,69 +417,29 @@
             right: 0;
         }
 
-        .click-zone:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        /* Logo placeholder */
-        .logo-placeholder {
-            width: 150px;
-            height: 150px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 4rem;
-            margin-bottom: 2rem;
-        }
-
-        /* Round 2 Specific Modifications */
+        /* Round 2 Tweaks (Image Guess) */
         .slide.round-2 .prompt {
             display: none;
         }
 
         .slide.round-2 .asset-image {
-            max-width: 900px;
-            /* Increased from 600px */
+            max-width: 100%;
             max-height: 60vh;
-            /* Use viewport height instead of fixed pixels */
         }
 
-        .slide.round-2 .question-content {
-            margin-top: -3rem;
-            /* Move content up */
-        }
-
-        .slide.round-2 .asset-container {
-            margin-bottom: 2rem;
-        }
-
-        /* Round 2: Side-by-Side Layout on Answer Reveal */
         .slide.round-2.answer-visible .question-content {
             display: flex;
             flex-direction: row;
             align-items: center;
+            gap: 3rem;
             justify-content: center;
-            gap: 4rem;
-            margin-top: 0;
-            /* Reset margin */
             width: 100%;
-            max-width: 1200px;
         }
 
         .slide.round-2.answer-visible .asset-container {
-            margin-bottom: 0;
             flex: 1;
             display: flex;
             justify-content: flex-end;
-        }
-
-        .slide.round-2.answer-visible .asset-image {
-            max-height: 70vh;
-            /* Slightly larger in side-by-side */
-            max-width: 100%;
-            object-fit: contain;
         }
 
         .slide.round-2.answer-visible .answer-section {
@@ -477,73 +447,26 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-width: 300px;
-            margin-top: 0;
         }
 
         .slide.round-2.answer-visible .answer {
             font-size: 5rem;
-            /* Larger answer text */
-            margin-top: 2rem;
-            max-height: none;
-            /* Override animation restriction */
-            transform: none;
-            opacity: 1;
+            margin-top: 1rem;
         }
 
-        /* Round 4 Answer Board */
-        .slide.round4-answer-board {
-            background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
-            color: #333;
-        }
-
-        .slide.round4-answer-board h2 {
-            font-size: 2.5rem;
+        /* Logo Placeholder */
+        .logo-placeholder {
+            font-size: 4rem;
             margin-bottom: 2rem;
-            text-align: center;
-            max-width: 800px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
-        .slide.round4-answer-board .qr-container {
-            text-align: center;
+        .logo {
+            width: 150px;
+            height: 150px;
             margin-bottom: 2rem;
-        }
-
-        .slide.round4-answer-board .qr-code {
-            width: 200px;
-            height: 200px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            margin-bottom: 1rem;
-            background: white;
-            /* Placeholder background */
-        }
-
-        .slide.round4-answer-board .answer-list-container {
-            width: 100%;
-            max-width: 800px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
-            padding: 2rem;
-            max-height: 40vh;
-            overflow-y: auto;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .slide.round4-answer-board .answer-list h3 {
-            margin-bottom: 1rem;
-            text-align: center;
-            color: #667eea;
-        }
-
-        .slide.round4-answer-board .answer-item {
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            font-size: 1.2rem;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
         }
     </style>
 </head>
@@ -564,28 +487,24 @@
 
     <!-- Presentation container -->
     <div id="presentation-container">
-        <!-- Progress bar -->
         <div class="progress-bar">
             <div class="progress-fill" id="progress-fill"></div>
         </div>
 
-        <!-- Slide viewport -->
         <div class="slide-viewport">
             <div class="slide-wrapper" id="slide-wrapper">
                 <!-- Slides will be dynamically inserted here -->
             </div>
         </div>
 
-        <!-- Navigation controls -->
         <div class="nav-controls">
             <button class="nav-btn" id="prev-btn" onclick="prevSlide()">◀</button>
-            <div class="slide-counter">
+            <div class="slide-counter" style="color:var(--gold); font-weight:bold; margin: 0 1rem;">
                 <span id="current-slide">1</span> / <span id="total-slides">1</span>
             </div>
             <button class="nav-btn" id="next-btn" onclick="nextSlide()">▶</button>
         </div>
 
-        <!-- Click zones for navigation -->
         <div class="click-zone left" onclick="prevSlide()"></div>
         <div class="click-zone right" onclick="nextSlide()"></div>
     </div>
@@ -667,69 +586,37 @@
                 throw new Error(`bank.json 格式错误: ${e.message}`);
             }
 
-            // Validate bank.json structure
-            if (!contentData.rounds || !Array.isArray(contentData.rounds)) {
-                throw new Error("bank.json 缺少 rounds 数组");
-            }
-
             console.log(`✓ 加载题库成功，共 ${contentData.rounds.length} 个环节`);
 
-            // Load logo (try multiple extensions)
+            // Load logo
             await loadLogo(files);
 
             // AUTO-DISCOVERY FOR ROUND 2 (image_guess)
-            // Look for jpg files in image/round2/ or assets/images/round2/
             const round2 = contentData.rounds.find(r => r.key === 'image_guess' || r.round === 2);
             if (round2) {
                 console.log("🔍正在扫描 Round 2 图片...");
                 const round2Images = files.filter(f => {
                     const path = f.webkitRelativePath || f.name;
-                    // Match "image/round2/" or "assets/images/round2/" and ends with .jpg (case insensitive)
                     return (path.includes('image/round2/') || path.includes('assets/images/round2/')) &&
                         /\.jpg$/i.test(f.name);
                 });
 
                 if (round2Images.length > 0) {
-                    console.log(`✓ 发现 ${round2Images.length} 张 Round 2 图片，自动生成题目`);
-
-                    // Sort by filename to ensure consistent order
+                    console.log(`✓ 发现 ${round2Images.length} 张 Round 2 图片`);
                     round2Images.sort((a, b) => a.name.localeCompare(b.name));
-
                     round2.items = round2Images.map((file, index) => {
-                        // Extract answer from filename (remove extension)
-                        const filename = file.name;
-                        const answer = filename.replace(/\.[^/.]+$/, ""); // Remove extension
-
-                        // Get relative path for asset loading
-                        // webkitRelativePath is full path like "content/image/round2/foo.jpg"
-                        // ensure we pass something loadAsset can handle. 
-                        // loadAsset matches by endWith or name, so webkitRelativePath is safe to pass if we want, 
-                        // but let's pass the relative path part.
-                        // Actually, loadAsset takes 'path', and matches against file.webkitRelativePath.endsWith(path).
-                        // So passing "image/round2/foo.jpg" is good.
-                        // But since we just need to identify the file, we can use the file object directly if we refactored,
-                        // but sticking to existing pattern: logic needs a string path.
-
-                        // We will use the full relative path after the root folder name.
-                        // f.webkitRelativePath usually is "Folder/Sub/File.jpg".
-                        // We want "Sub/File.jpg" roughly, but our loadAsset checks "endsWith".
-                        // So we can just use the filename or a clearer path if unique.
-                        // Let's use the path string found in the file object to be safe.
-
+                        const answer = file.name.replace(/\.[^/.]+$/, "");
                         return {
                             id: `auto-q2-${index + 1}`,
-                            prompt: "这是一个谜语，请看图猜字", // Default prompt
+                            prompt: "这是一个谜语，请看图猜字",
                             answer: answer,
                             asset: file.webkitRelativePath
                         };
                     });
-                } else {
-                    console.log("⚠️ 未发现 Round 2 自动图片 (image/round2/*.jpg)，使用 bank.json 默认题目");
                 }
             }
 
             // AUTO-DISCOVERY FOR ROUND 3 (music_guess)
-            // Look for mp3 files in assets/audio/ or matching pattern
             const round3 = contentData.rounds.find(r => r.key === 'music_guess' || r.round === 3);
             if (round3) {
                 console.log("🔍正在扫描 Round 3 音频...");
@@ -740,24 +627,17 @@
                 });
 
                 if (round3Audio.length > 0) {
-                    console.log(`✓ 发现 ${round3Audio.length} 个 Round 3 音频，自动生成题目`);
-
-                    // Sort by filename
+                    console.log(`✓ 发现 ${round3Audio.length} 个 Round 3 音频`);
                     round3Audio.sort((a, b) => a.name.localeCompare(b.name));
-
                     round3.items = round3Audio.map((file, index) => {
-                        const filename = file.name;
-                        const answer = filename.replace(/\.[^/.]+$/, ""); // Remove extension
-
+                        const answer = file.name.replace(/\.[^/.]+$/, "");
                         return {
                             id: `auto-q3-${index + 1}`,
-                            prompt: "听歌猜曲目/歌手", // Default prompt
+                            prompt: "听歌猜曲目/歌手",
                             answer: answer,
-                            asset: file.webkitRelativePath  // This will be matched by loadAsset logic
+                            asset: file.webkitRelativePath
                         };
                     });
-                } else {
-                    console.log("⚠️ 未发现 Round 3 自动音频 (assets/audio/*.mp3)，使用 bank.json 默认题目");
                 }
             }
 
@@ -770,35 +650,23 @@
 
         async function loadLogo(files) {
             const logoExtensions = ['svg', 'png', 'webp', 'jpg'];
-
             for (const ext of logoExtensions) {
-                const logoFile = files.find(f =>
-                    f.name === `logo.${ext}` ||
-                    f.webkitRelativePath.endsWith(`logo.${ext}`)
-                );
-
+                const logoFile = files.find(f => f.name === `logo.${ext}` || f.webkitRelativePath.endsWith(`logo.${ext}`));
                 if (logoFile) {
                     try {
                         logoDataUrl = await readFileAsDataUrl(logoFile);
-                        console.log(`✓ 加载 logo.${ext} 成功`);
                         return;
-                    } catch (e) {
-                        console.warn(`无法加载 logo.${ext}:`, e);
-                    }
+                    } catch (e) { }
                 }
             }
-
-            console.log("未找到 logo 文件，将使用占位符");
         }
 
         async function loadBackground(files) {
             const bgExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-            // Check specific locations: assets/background.* or background.*
             const bgFile = files.find(f => {
                 const name = f.name.toLowerCase();
-                // check if it is explicitly in assets folder or root
-                const path = f.webkitRelativePath || "";
-                return (path.includes('assets/background.') || name.startsWith('background.')) &&
+                // Check if in root or assets/
+                return (name.startsWith('background.') || f.webkitRelativePath.includes('/background.')) &&
                     bgExtensions.some(ext => name.endsWith('.' + ext));
             });
 
@@ -806,8 +674,7 @@
                 try {
                     const bgDataUrl = await readFileAsDataUrl(bgFile);
                     // Apply to body background
-                    document.body.style.background = `url(${bgDataUrl}) no-repeat center center fixed`;
-                    document.body.style.backgroundSize = 'cover';
+                    document.body.style.backgroundImage = `url(${bgDataUrl})`;
                     console.log(`✓ 加载背景图成功: ${bgFile.name}`);
                 } catch (e) {
                     console.warn(`无法加载背景图:`, e);
@@ -826,22 +693,12 @@
 
         async function loadAsset(assetPath) {
             if (!window.contentFiles || !assetPath) return null;
-
+            // Match fuzzy
             const assetFile = window.contentFiles.find(f =>
                 f.webkitRelativePath.endsWith(assetPath) || f.name === assetPath.split('/').pop()
             );
-
-            if (!assetFile) {
-                console.warn(`Asset not found: ${assetPath}`);
-                return null;
-            }
-
-            try {
-                return await readFileAsDataUrl(assetFile);
-            } catch (e) {
-                console.warn(`Failed to load asset ${assetPath}:`, e);
-                return null;
-            }
+            if (!assetFile) return null;
+            return await readFileAsDataUrl(assetFile);
         }
 
         // ===========================
@@ -850,62 +707,47 @@
         function initPresentation() {
             slides = [];
 
-            // 1. Cover slide
-            slides.push({
-                type: 'cover',
-                content: COPY.cover
-            });
+            // 1. Cover
+            slides.push({ type: 'cover', content: COPY.cover });
 
-            // 2. Rules slide
-            slides.push({
-                type: 'rules',
-                content: COPY.rules
-            });
+            // 2. Rules
+            slides.push({ type: 'rules', content: COPY.rules });
 
-            // 3. Process rounds
-            contentData.rounds.forEach((round, roundIndex) => {
-                // Section intro slide
-                slides.push({
-                    type: 'section-intro',
-                    round: round,
-                    roundNumber: roundIndex + 1
-                });
-
-                // Question slides
-                if (round.items && Array.isArray(round.items)) {
-                    round.items.forEach((item, itemIndex) => {
-                        // Validate required fields
-                        if (!item.id || !item.prompt) {
-                            console.warn(`Skipping invalid question: missing id or prompt`, item);
-                            return;
-                        }
-
-                        slides.push({
-                            type: 'question',
-                            question: item,
-                            roundNumber: roundIndex + 1,
-                            questionNumber: itemIndex + 1
-                        });
-
-                        // For Round 4 (Open Riddle) or matching key, add Board slide
-                        if (round.round === 4 || round.key === 'open_riddle') {
-                            slides.push({
-                                type: 'round4-answer-board',
-                                roundNumber: roundIndex + 1,
-                                question: item // Pass question data to display context if needed
-                            });
-                        }
+            // 3. Rounds
+            if (contentData.rounds) {
+                contentData.rounds.forEach((round, roundIndex) => {
+                    // Section Intro
+                    slides.push({
+                        type: 'section-intro',
+                        round: round,
+                        roundNumber: roundIndex + 1
                     });
-                }
-            });
 
-            // 4. Ending slide
-            slides.push({
-                type: 'ending',
-                content: COPY.ending
-            });
+                    // Questions
+                    if (round.items) {
+                        round.items.forEach((item, itemIndex) => {
+                            slides.push({
+                                type: 'question',
+                                question: item,
+                                roundNumber: roundIndex + 1,
+                                questionNumber: itemIndex + 1
+                            });
 
-            console.log(`✓ 生成 ${slides.length} 张幻灯片`);
+                            // Answer Board for R4 or special key
+                            if (round.round === 4 || round.key === 'open_riddle') {
+                                slides.push({
+                                    type: 'round4-answer-board',
+                                    roundNumber: roundIndex + 1,
+                                    question: item
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            // 4. Ending
+            slides.push({ type: 'ending', content: COPY.ending });
 
             renderSlides();
             updateNavigation();
@@ -921,16 +763,19 @@
                 wrapper.appendChild(slideElement);
             }
 
-            // Show first slide
-            wrapper.children[0].classList.add('active');
+            // Show first
+            if (wrapper.children.length > 0) {
+                wrapper.children[0].classList.add('active');
+                // Set initial type
+                wrapper.setAttribute('data-current-type', slides[0].type);
+            }
 
-            // Update total count
+            // Total count
             document.getElementById('total-slides').textContent = slides.length;
         }
 
         async function createSlideElement(slideData, index) {
             const div = document.createElement('div');
-            // Add round-specific class if available (e.g., round-2)
             const roundClass = slideData.roundNumber ? `round-${slideData.roundNumber}` : '';
             div.className = `slide ${slideData.type} ${roundClass}`;
             div.dataset.index = index;
@@ -938,38 +783,36 @@
             switch (slideData.type) {
                 case 'cover':
                     div.innerHTML = `
-            ${logoDataUrl
+                        ${logoDataUrl
                             ? `<img src="${logoDataUrl}" alt="Logo" class="logo">`
                             : '<div class="logo-placeholder">🎉</div>'
                         }
-            <h1>${slideData.content.title}</h1>
-            <div class="subtitle">${slideData.content.subtitle}</div>
-          `;
+                        <h1>${slideData.content.title}</h1>
+                        <div class="subtitle">${slideData.content.subtitle}</div>
+                    `;
                     break;
 
                 case 'rules':
                     div.innerHTML = `
-            <h2>${slideData.content.title}</h2>
-            <ul>
-              ${slideData.content.items.map(item => `<li>${item}</li>`).join('')}
-            </ul>
-          `;
+                        <h2>${slideData.content.title}</h2>
+                        <ul>
+                          ${slideData.content.items.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    `;
                     break;
 
                 case 'section-intro':
-                    const roundTitle = slideData.round.key || `环节 ${slideData.roundNumber}`;
+                    const roundTitle = slideData.round.name || slideData.round.key || `环节 ${slideData.roundNumber}`;
                     const roundDesc = slideData.round.description || '';
                     div.innerHTML = `
-            <div class="round-number">第${slideData.roundNumber}环节</div>
-            <h2>${roundTitle}</h2>
-            ${roundDesc ? `<div class="description">${roundDesc}</div>` : ''}
-          `;
+                        <div class="round-number">第${slideData.roundNumber}环节</div>
+                        <h2>${roundTitle}</h2>
+                        ${roundDesc ? `<div class="description">${roundDesc}</div>` : ''}
+                    `;
                     break;
 
                 case 'question':
-                    // For Round 4, hide the "Show Answer" button
-                    const hideAnswer = slideData.roundNumber === 4;
-                    await renderQuestionSlide(div, slideData, hideAnswer);
+                    await renderQuestionSlide(div, slideData, slideData.roundNumber === 4);
                     break;
 
                 case 'round4-answer-board':
@@ -990,51 +833,31 @@
 
                 case 'ending':
                     div.innerHTML = `
-            <h2>${slideData.content.title}</h2>
-            <p>${slideData.content.message}</p>
-          `;
+                        <h2>${slideData.content.title}</h2>
+                        <p>${slideData.content.message}</p>
+                    `;
                     break;
             }
-
             return div;
         }
 
-        async function renderQuestionSlide(element, slideData, hideAnswer = false) {
+        async function renderQuestionSlide(element, slideData, hideAnswer) {
             const question = slideData.question;
-
             let assetHtml = '';
-            // ... (asset logic remains same, skipping for brevity in search)
+
             if (question.asset) {
                 const assetData = await loadAsset(question.asset);
-
                 if (assetData) {
-                    // Determine if it's image or audio based on extension
                     const extension = question.asset.split('.').pop().toLowerCase();
-                    const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
-                    const audioExts = ['mp3', 'wav', 'ogg', 'm4a'];
-
-                    if (imageExts.includes(extension)) {
-                        assetHtml = `
-              <div class="asset-container">
-                <img src="${assetData}" alt="Question asset" class="asset-image">
-              </div>
-            `;
-                    } else if (audioExts.includes(extension)) {
-                        assetHtml = `
-              <div class="asset-container asset-audio">
-                <audio controls>
-                  <source src="${assetData}">
-                  您的浏览器不支持音频播放
-                </audio>
-              </div>
-            `;
+                    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension)) {
+                        assetHtml = `<div class="asset-container"><img src="${assetData}" class="asset-image"></div>`;
+                    } else if (['mp3', 'wav', 'ogg'].includes(extension)) {
+                        assetHtml = `<div class="asset-container asset-audio">
+                            <audio controls><source src="${assetData}"></audio>
+                        </div>`;
                     }
                 } else {
-                    assetHtml = `
-            <div class="asset-container">
-              <div class="asset-placeholder">资源未找到: ${question.asset}</div>
-            </div>
-          `;
+                    assetHtml = `<div class="asset-container"><div class="asset-placeholder">资源未找到: ${question.asset}</div></div>`;
                 }
             }
 
@@ -1043,31 +866,24 @@
             const btnId = `btn-${question.id}`;
 
             element.innerHTML = `
-        <div class="question-content">
-          <div class="prompt">${question.prompt}</div>
-          ${assetHtml}
-          ${hasAnswer && !hideAnswer ? `
-            <div class="answer-section">
-              <button class="reveal-btn" id="${btnId}" onclick="toggleAnswer('${answerId}', '${btnId}')">
-                显示答案
-              </button>
-              <div class="answer" id="${answerId}">${question.answer}</div>
-            </div>
-          ` : ''}
-        </div>
-      `;
+                <div class="question-content">
+                  <div class="prompt">${question.prompt}</div>
+                  ${assetHtml}
+                  ${hasAnswer && !hideAnswer ? `
+                    <div class="answer-section">
+                      <button class="reveal-btn" id="${btnId}" onclick="toggleAnswer('${answerId}', '${btnId}')">
+                        显示答案
+                      </button>
+                      <div class="answer" id="${answerId}">${question.answer}</div>
+                    </div>
+                  ` : ''}
+                </div>
+            `;
         }
 
-        // ===========================
-        // ANSWER TOGGLE
-        // ===========================
         function toggleAnswer(answerId, btnId) {
             const answerEl = document.getElementById(answerId);
             const btnEl = document.getElementById(btnId);
-
-            if (!answerEl || !btnEl) return;
-
-            // Find parent slide to toggle layout class
             const slide = btnEl.closest('.slide');
 
             if (answerEl.classList.contains('visible')) {
@@ -1086,11 +902,9 @@
         // ===========================
         function goToSlide(index) {
             if (index < 0 || index >= slides.length) return;
-
             const wrapper = document.getElementById('slide-wrapper');
             const allSlides = wrapper.children;
 
-            // Hide current slide
             if (allSlides[currentSlideIndex]) {
                 allSlides[currentSlideIndex].classList.remove('active');
                 if (index > currentSlideIndex) {
@@ -1100,62 +914,31 @@
                 }
             }
 
-            // Show new slide
             currentSlideIndex = index;
             if (allSlides[currentSlideIndex]) {
                 allSlides[currentSlideIndex].classList.add('active');
                 allSlides[currentSlideIndex].classList.remove('prev');
+
+                // Update type for CSS
+                const type = slides[currentSlideIndex].type;
+                wrapper.setAttribute('data-current-type', type);
             }
 
-            updateNavigation();
-        }
-
-        function nextSlide() {
-            goToSlide(currentSlideIndex + 1);
-        }
-
-        function prevSlide() {
-            goToSlide(currentSlideIndex - 1);
-        }
-
-        function updateNavigation() {
-            // Update counter
+            // Update UI
             document.getElementById('current-slide').textContent = currentSlideIndex + 1;
-
-            // Update buttons
             document.getElementById('prev-btn').disabled = currentSlideIndex === 0;
             document.getElementById('next-btn').disabled = currentSlideIndex === slides.length - 1;
 
-            // Update progress bar
             const progress = ((currentSlideIndex + 1) / slides.length) * 100;
             document.getElementById('progress-fill').style.width = `${progress}%`;
         }
 
-        // ===========================
-        // KEYBOARD NAVIGATION
-        // ===========================
+        function nextSlide() { goToSlide(currentSlideIndex + 1); }
+        function prevSlide() { goToSlide(currentSlideIndex - 1); }
+
         document.addEventListener('keydown', (e) => {
-            switch (e.key) {
-                case 'ArrowRight':
-                case ' ':
-                case 'PageDown':
-                    e.preventDefault();
-                    nextSlide();
-                    break;
-                case 'ArrowLeft':
-                case 'PageUp':
-                    e.preventDefault();
-                    prevSlide();
-                    break;
-                case 'Home':
-                    e.preventDefault();
-                    goToSlide(0);
-                    break;
-                case 'End':
-                    e.preventDefault();
-                    goToSlide(slides.length - 1);
-                    break;
-            }
+            if (['ArrowRight', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); nextSlide(); }
+            if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); prevSlide(); }
         });
     </script>
 </body>
