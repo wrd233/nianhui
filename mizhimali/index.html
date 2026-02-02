@@ -728,6 +728,42 @@
                 }
             }
 
+            // AUTO-DISCOVERY FOR ROUND 3 (music_guess)
+            // Look for mp3 files in assets/audio/ or matching pattern
+            const round3 = contentData.rounds.find(r => r.key === 'music_guess' || r.round === 3);
+            if (round3) {
+                console.log("🔍正在扫描 Round 3 音频...");
+                const round3Audio = files.filter(f => {
+                    const path = f.webkitRelativePath || f.name;
+                    return (path.includes('assets/audio/') || path.includes('audio/')) &&
+                        /\.mp3$/i.test(f.name);
+                });
+
+                if (round3Audio.length > 0) {
+                    console.log(`✓ 发现 ${round3Audio.length} 个 Round 3 音频，自动生成题目`);
+
+                    // Sort by filename
+                    round3Audio.sort((a, b) => a.name.localeCompare(b.name));
+
+                    round3.items = round3Audio.map((file, index) => {
+                        const filename = file.name;
+                        const answer = filename.replace(/\.[^/.]+$/, ""); // Remove extension
+
+                        return {
+                            id: `auto-q3-${index + 1}`,
+                            prompt: "听歌猜曲目/歌手", // Default prompt
+                            answer: answer,
+                            asset: file.webkitRelativePath  // This will be matched by loadAsset logic
+                        };
+                    });
+                } else {
+                    console.log("⚠️ 未发现 Round 3 自动音频 (assets/audio/*.mp3)，使用 bank.json 默认题目");
+                }
+            }
+
+            // Load background image
+            await loadBackground(files);
+
             // Store files for asset loading
             window.contentFiles = files;
         }
@@ -753,6 +789,30 @@
             }
 
             console.log("未找到 logo 文件，将使用占位符");
+        }
+
+        async function loadBackground(files) {
+            const bgExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+            // Check specific locations: assets/background.* or background.*
+            const bgFile = files.find(f => {
+                const name = f.name.toLowerCase();
+                // check if it is explicitly in assets folder or root
+                const path = f.webkitRelativePath || "";
+                return (path.includes('assets/background.') || name.startsWith('background.')) &&
+                    bgExtensions.some(ext => name.endsWith('.' + ext));
+            });
+
+            if (bgFile) {
+                try {
+                    const bgDataUrl = await readFileAsDataUrl(bgFile);
+                    // Apply to body background
+                    document.body.style.background = `url(${bgDataUrl}) no-repeat center center fixed`;
+                    document.body.style.backgroundSize = 'cover';
+                    console.log(`✓ 加载背景图成功: ${bgFile.name}`);
+                } catch (e) {
+                    console.warn(`无法加载背景图:`, e);
+                }
+            }
         }
 
         function readFileAsDataUrl(file) {

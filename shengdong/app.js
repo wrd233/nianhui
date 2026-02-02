@@ -210,6 +210,9 @@ async function selectAssetsFolder() {
         // Scan for rounds
         await scanRoundsFolder();
 
+        // Load background image
+        await loadBackground(assetsDirectoryHandle);
+
         // Hide instruction overlay
         document.getElementById('instructionOverlay').classList.add('hidden');
 
@@ -337,6 +340,54 @@ async function loadRoundData(roundFolderHandle) {
     } catch (error) {
         console.error(`❌ Error loading round data for ${roundFolderHandle.name}:`, error);
         return null;
+    }
+}
+
+async function loadBackground(directoryHandle) {
+    try {
+        let bgFileHandle = null;
+
+        // 1. Check root directory for background.jpg/png/etc
+        for await (const entry of directoryHandle.values()) {
+            if (entry.kind === 'file' && entry.name.match(/^background\.(jpg|jpeg|png|webp)$/i)) {
+                bgFileHandle = entry;
+                break;
+            }
+        }
+
+        // 2. If not in root, check assets/ folder if it exists
+        if (!bgFileHandle) {
+            // We need to see if there is an assets folder
+            try {
+                const assetsDir = await directoryHandle.getDirectoryHandle('assets');
+                for await (const entry of assetsDir.values()) {
+                    if (entry.kind === 'file' && entry.name.match(/^background\.(jpg|jpeg|png|webp)$/i)) {
+                        bgFileHandle = entry;
+                        break;
+                    }
+                }
+            } catch (e) {
+                // assets folder might not exist, ignore
+            }
+        }
+
+        if (bgFileHandle) {
+            const file = await bgFileHandle.getFile();
+            const url = URL.createObjectURL(file);
+            console.log(`✅ Loaded background: ${bgFileHandle.name}`);
+
+            // Update CSS variable
+            // note: the CSS uses: url('...') no-repeat center center fixed
+            document.documentElement.style.setProperty('--bg-gradient', `url('${url}') no-repeat center center fixed`);
+
+            // Also ensure the element has background-size: cover if not already guaranteed by shorthand or class
+            const bgEl = document.querySelector('.background');
+            if (bgEl) {
+                bgEl.style.backgroundSize = 'cover';
+            }
+        }
+    } catch (error) {
+        console.warn('⚠️ Failed to load background image:', error);
     }
 }
 
