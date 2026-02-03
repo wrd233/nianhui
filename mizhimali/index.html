@@ -10,10 +10,10 @@
             --primary-color: #C41E3A;
             --gold: #FFD700;
             --text-gold: #FFD700;
-            /* Changed to a very subtle reddish transparency to let background pop, avoiding "gray" */
-            --bg-dark: rgba(40, 0, 10, 0.55);
-            --panel-border: rgba(255, 215, 0, 0.3);
-            --glass-bg: rgba(255, 255, 255, 0.05);
+            /* 几乎全透明背景，让红色背景显现 */
+            --bg-dark: rgba(40, 0, 10, 0.12);
+            --panel-border: rgba(255, 215, 0, 0.45);
+            --glass-bg: rgba(255, 255, 255, 0.03);
         }
 
         * {
@@ -134,11 +134,10 @@
             background: var(--bg-dark);
             border: 2px solid var(--panel-border);
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             overflow: hidden;
             transition: all 0.5s ease;
-            backdrop-filter: blur(12px);
-            /* Increased blur slightly */
+            backdrop-filter: blur(8px);
         }
 
         /* NO CARD MODE for Cover/Section Intro */
@@ -192,12 +191,14 @@
             color: var(--gold);
             font-size: 4rem;
             margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
         }
 
         h2 {
             color: var(--gold);
             font-size: 3rem;
             margin-bottom: 2rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
         }
 
         .subtitle {
@@ -247,7 +248,12 @@
             color: white;
             font-weight: bold;
             min-height: 4rem;
-            width: 100%;
+            /* 为 emoji 添加轻微背景 */
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
         }
 
         .answer {
@@ -308,35 +314,172 @@
             color: #ccc;
         }
 
-        /* Round 4 Board */
-        .slide.round4-answer-board .answer-list-container {
+        /* Round 4 - 第一页：题目+二维码 */
+        .slide.round4-question .question-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
             width: 100%;
-            /* Use fuller width */
-            max-width: 900px;
-            background: rgba(40, 0, 10, 0.3);
-            /* Match theme */
-            border: 1px solid var(--panel-border);
-            border-radius: 12px;
-            padding: 2rem;
-            max-height: 50vh;
-            overflow-y: auto;
+        }
+
+        .slide.round4-question .prompt {
+            font-size: 4.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(60, 10, 20, 0.6) 100%);
+            border: 2px solid var(--gold);
+            padding: 2rem 4rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 2rem;
+            min-height: auto;
+        }
+
+        .slide.round4-question .qr-code {
+            width: 280px;
+            height: 280px;
+            border-radius: 16px;
+            border: 3px solid var(--gold);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .slide.round4-question .qr-hint {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.2rem;
+        }
+
+        /* Round 4 - 第二页：题目+回答列表 */
+        .slide.round4-answers .answers-container {
+            width: 100%;
+            max-width: 800px;
             margin: 0 auto;
         }
 
-        .slide.round4-answer-board .answer-list h3 {
+        .slide.round4-answers .prompt-small {
+            font-size: 1.8rem;
             color: var(--gold);
-            margin-bottom: 1rem;
-            text-align: center;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
         }
 
+        .slide.round4-answers .answer-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        /* 回答条目基础样式 */
         .answer-item {
             background: rgba(255, 255, 255, 0.1);
-            margin-bottom: 0.5rem;
-            padding: 0.8rem;
-            border-radius: 4px;
+            padding: 0.9rem 1.2rem;
+            border-radius: 8px;
             color: white;
-            text-shadow: none;
             text-align: left;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .answer-item:hover {
+            transform: translateX(8px);
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        /* 第一名：金色渐变 */
+        .answer-item.rank-1 {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #1a0a0f;
+            font-weight: bold;
+            font-size: 1.25rem;
+            border: 2px solid #FFD700;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+            position: relative;
+        }
+
+        .answer-item.rank-1::before {
+            content: '🏆';
+            margin-right: 0.8rem;
+        }
+
+        /* 第二、三名：金色边框 */
+        .answer-item.rank-2,
+        .answer-item.rank-3 {
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            font-weight: 600;
+        }
+
+        .answer-item.rank-2::before {
+            content: '🥈';
+            margin-right: 0.5rem;
+        }
+
+        .answer-item.rank-3::before {
+            content: '🥉';
+            margin-right: 0.5rem;
+        }
+
+        /* 弹出卡片遮罩 */
+        .answer-card-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* 弹出卡片 */
+        .answer-card {
+            background: linear-gradient(135deg, #2D0615 0%, #1A0A0F 100%);
+            border: 3px solid var(--gold);
+            border-radius: 20px;
+            padding: 3rem 4rem;
+            max-width: 75%;
+            max-height: 60%;
+            text-align: center;
+            color: white;
+            font-size: 2.2rem;
+            line-height: 1.6;
+            box-shadow:
+                0 0 60px rgba(255, 215, 0, 0.4),
+                0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .answer-card .card-hint {
+            margin-top: 2rem;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.5);
         }
 
         .qr-code {
@@ -726,19 +869,28 @@
                     // Questions
                     if (round.items) {
                         round.items.forEach((item, itemIndex) => {
-                            slides.push({
-                                type: 'question',
-                                question: item,
-                                roundNumber: roundIndex + 1,
-                                questionNumber: itemIndex + 1
-                            });
-
-                            // Answer Board for R4 or special key
+                            // Round 4 特殊处理：分为两页
                             if (round.round === 4 || round.key === 'open_riddle') {
+                                // 页面1: 题目 + 二维码
                                 slides.push({
-                                    type: 'round4-answer-board',
+                                    type: 'round4-question',
+                                    question: item,
                                     roundNumber: roundIndex + 1,
-                                    question: item
+                                    questionNumber: itemIndex + 1
+                                });
+                                // 页面2: 题目 + 回答列表
+                                slides.push({
+                                    type: 'round4-answers',
+                                    question: item,
+                                    roundNumber: roundIndex + 1,
+                                    questionNumber: itemIndex + 1
+                                });
+                            } else {
+                                slides.push({
+                                    type: 'question',
+                                    question: item,
+                                    roundNumber: roundIndex + 1,
+                                    questionNumber: itemIndex + 1
                                 });
                             }
                         });
@@ -815,17 +967,39 @@
                     await renderQuestionSlide(div, slideData, slideData.roundNumber === 4);
                     break;
 
-                case 'round4-answer-board':
+                case 'round4-question':
+                    // Round 4 第一页：题目 + 二维码
                     div.innerHTML = `
-                        <h2>${slideData.question.prompt}</h2>
-                        <div class="qr-container">
-                            <img src="assets/images/qr_placeholder.png" alt="Scan to Answer" class="qr-code">
-                            <p>扫码提交你的奇思妙想</p>
+                        <div class="question-content">
+                            <div class="prompt">${slideData.question.prompt}</div>
+                            <img src="assets/images/qr_placeholder.png" alt="扫码提交" class="qr-code">
+                            <p class="qr-hint">扫码提交你的奇思妙想</p>
                         </div>
-                        <div class="answer-list-container">
-                            <h3>大家的回答</h3>
+                    `;
+                    break;
+
+                case 'round4-answers':
+                    // Round 4 第二页：题目 + 7条回答列表
+                    const answers = [
+                        '示例回答 1 - 点击编辑',
+                        '示例回答 2 - 点击编辑',
+                        '示例回答 3 - 点击编辑',
+                        '示例回答 4 - 点击编辑',
+                        '示例回答 5 - 点击编辑',
+                        '示例回答 6 - 点击编辑',
+                        '示例回答 7 - 点击编辑'
+                    ];
+                    div.innerHTML = `
+                        <div class="answers-container">
+                            <div class="prompt-small">${slideData.question.prompt}</div>
                             <div class="answer-list">
-                                <div class="answer-item">等待回答...</div>
+                                ${answers.map((ans, i) => {
+                        let rankClass = '';
+                        if (i === 0) rankClass = 'rank-1';
+                        else if (i === 1) rankClass = 'rank-2';
+                        else if (i === 2) rankClass = 'rank-3';
+                        return `<div class="answer-item ${rankClass}" data-answer="${ans}">${ans}</div>`;
+                    }).join('')}
                             </div>
                         </div>
                     `;
@@ -896,6 +1070,31 @@
                 if (slide) slide.classList.add('answer-visible');
             }
         }
+
+        // Round 4 回答卡片弹出功能
+        function showAnswerCard(content) {
+            const overlay = document.createElement('div');
+            overlay.className = 'answer-card-overlay';
+            overlay.innerHTML = `
+                <div class="answer-card">
+                    <p>${content}</p>
+                    <div class="card-hint">点击任意处关闭</div>
+                </div>
+            `;
+            overlay.addEventListener('click', () => {
+                overlay.style.animation = 'fadeIn 0.2s ease reverse';
+                setTimeout(() => overlay.remove(), 200);
+            });
+            document.body.appendChild(overlay);
+        }
+
+        // 事件委托：监听回答条目点击
+        document.addEventListener('click', (e) => {
+            const answerItem = e.target.closest('.answer-item');
+            if (answerItem && answerItem.dataset.answer) {
+                showAnswerCard(answerItem.dataset.answer);
+            }
+        });
 
         // ===========================
         // NAVIGATION
