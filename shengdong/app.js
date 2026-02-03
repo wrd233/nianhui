@@ -100,7 +100,12 @@ const slideTemplates = {
                     </div>
                     ${data.props && data.props.length > 0 ? `
                         <div class="panel props-panel">
-                            <h3>推荐道具</h3>
+                            <div class="props-header">
+                                <h3>推荐道具</h3>
+                                <button class="picker-btn" onclick="showPicker()">
+                                    🎲 随机抽人
+                                </button>
+                            </div>
                             <div class="props-list">
                                 ${data.props.map(prop => `<span class="prop-tag">${prop}</span>`).join('')}
                             </div>
@@ -516,7 +521,8 @@ function handleSpaceKey() {
 // ==========================================
 
 function toggleFullscreen() {
-    const container = document.querySelector('.presentation-container');
+    // 使用 body 作为全屏容器，这样 picker 也能在全屏模式下正常交互
+    const container = document.body;
 
     if (!document.fullscreenElement) {
         container.requestFullscreen().catch(err => {
@@ -755,4 +761,410 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 50);
     }, { passive: true });
+
+    // Picker back button
+    document.getElementById('backToPresentation')?.addEventListener('click', hidePicker);
 });
+
+// ==========================================
+// PICKER INTEGRATION
+// ==========================================
+
+// Page switching functions
+function showPicker() {
+    // Hide presentation, show picker
+    document.querySelector('.presentation-container').style.display = 'none';
+    document.getElementById('instructionOverlay').style.display = 'none';
+    document.getElementById('pickerContainer').classList.remove('hidden');
+
+    // Pause current videos
+    const videos = document.querySelectorAll('.slide-canvas video');
+    videos.forEach(v => v.pause());
+}
+
+function hidePicker() {
+    // Hide picker, show presentation
+    document.getElementById('pickerContainer').classList.add('hidden');
+    document.querySelector('.presentation-container').style.display = 'flex';
+}
+
+// ==========================================
+// PICKER CORE LOGIC (Encapsulated)
+// ==========================================
+
+(function initPicker() {
+    // People data
+    const pickerPeople = [
+        // 系统运维部
+        { department: "系统运维部", gender: "男", name: "系统运维部小李" },
+        { department: "系统运维部", gender: "女", name: "系统运维部小张" },
+
+        // 软件开发部
+        { department: "软件开发部", gender: "男", name: "软件开发部小李" },
+        { department: "软件开发部", gender: "女", name: "软件开发部小王" },
+
+        // 智能工程部
+        { department: "智能工程部", gender: "男", name: "智能工程部小李" },
+
+        // 数据运营部
+        { department: "数据运营部", gender: "女", name: "数据运营部小李" },
+
+        // 港航物流部
+        { department: "港航物流部", gender: "男", name: "港航物流部小李" },
+
+        // 综合办公室
+        { department: "综合办公室", gender: "女", name: "综合办公室小李" },
+
+        // 技术中心
+        { department: "技术中心", gender: "男", name: "技术中心小李" },
+
+        // 后勤采购部
+        { department: "后勤采购部", gender: "女", name: "后勤采购部小李" },
+
+        // 计划财务部
+        { department: "计划财务部", gender: "男", name: "计划财务部小李" },
+
+        // 市场部
+        { department: "市场部", gender: "女", name: "市场部小李" }
+    ];
+
+    // Extract unique departments and genders
+    const departments = [...new Set(pickerPeople.map(p => p.department))];
+    const genders = [...new Set(pickerPeople.map(p => p.gender))];
+
+    // DOM elements
+    const deptFilter = document.getElementById('pickerDeptFilter');
+    const genderFilter = document.getElementById('pickerGenderFilter');
+    const startBtn = document.getElementById('pickerStartBtn');
+    const resultPanel = document.getElementById('pickerResultPanel');
+    const resultContent = document.getElementById('pickerResultContent');
+    const messageArea = document.getElementById('pickerMessageArea');
+
+    const reelDept = document.getElementById('pickerReelDept');
+    const reelGender = document.getElementById('pickerReelGender');
+    const reelName = document.getElementById('pickerReelName');
+    const reelDeptContent = document.getElementById('pickerReelDeptContent');
+    const reelGenderContent = document.getElementById('pickerReelGenderContent');
+    const reelNameContent = document.getElementById('pickerReelNameContent');
+
+    // Configuration
+    const REEL_ITEM_HEIGHT = 60;
+    const SPIN_DURATION = 2000;
+    const STOP_DELAY = 500;
+
+    // State
+    let isSpinning = false;
+    let selectedPerson = null;
+
+    // Initialize filters
+    function initFilters() {
+        departments.forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept;
+            option.textContent = dept;
+            deptFilter.appendChild(option);
+        });
+
+        genders.forEach(gender => {
+            const option = document.createElement('option');
+            option.value = gender;
+            option.textContent = gender;
+            genderFilter.appendChild(option);
+        });
+    }
+
+    // Get eligible people based on filters
+    function getEligiblePeople() {
+        const selectedDept = deptFilter.value;
+        const selectedGender = genderFilter.value;
+
+        return pickerPeople.filter(person => {
+            if (selectedDept && person.department !== selectedDept) return false;
+            if (selectedGender && person.gender !== selectedGender) return false;
+            return true;
+        });
+    }
+
+    // Random selection
+    function randomSelectPerson(eligiblePeople) {
+        if (eligiblePeople.length === 0) return null;
+        const randomIndex = Math.floor(Math.random() * eligiblePeople.length);
+        return eligiblePeople[randomIndex];
+    }
+
+    // Generate reel items
+    function generateReelItems(items, targetValue, reelContent) {
+        reelContent.innerHTML = '';
+
+        const repeatCount = 10;
+        const allItems = [];
+
+        for (let i = 0; i < repeatCount; i++) {
+            items.forEach(item => allItems.push(item));
+        }
+
+        // Shuffle
+        for (let i = allItems.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allItems[i], allItems[j]] = [allItems[j], allItems[i]];
+        }
+
+        // Place target value
+        const targetIndex = allItems.length - 2;
+        allItems[targetIndex] = targetValue;
+
+        // Create DOM elements
+        allItems.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'reel-item';
+            div.textContent = item;
+            reelContent.appendChild(div);
+        });
+
+        return targetIndex;
+    }
+
+    // Show locked reel
+    function showLockedReel(value, reelContent) {
+        reelContent.innerHTML = '';
+
+        for (let i = 0; i < 3; i++) {
+            const div = document.createElement('div');
+            div.className = 'reel-item';
+            div.textContent = i === 1 ? value : '';
+            reelContent.appendChild(div);
+        }
+
+        // 中间项目在索引1，translateY = -60px 让它居中
+        reelContent.style.transform = `translateY(-60px) rotateX(0deg)`;
+    }
+
+    // Animate reel
+    function animateReel(reelContent, targetIndex, duration, isLocked = false) {
+        return new Promise(resolve => {
+            if (isLocked) {
+                resolve();
+                return;
+            }
+
+            const startTime = Date.now();
+
+            // 计算最终的 translateY 位置（停止时 rotateX = 0）
+            const finalTranslateY = -((targetIndex - 1) * REEL_ITEM_HEIGHT);
+
+            // 旋转参数
+            const rotationsCount = 5; // 旋转圈数
+            const totalRotationDegrees = 360 * rotationsCount; // 总旋转角度
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+
+                let currentRotation, currentTranslateY;
+
+                if (progress < 0.8) {
+                    // 快速旋转阶段（80% 时间）
+                    // 同时旋转和移动
+                    currentRotation = easeOut * totalRotationDegrees;
+                    currentTranslateY = easeOut * finalTranslateY;
+                } else {
+                    // 减速阶段（20% 时间）- 渐渐停止旋转，回到 0 度
+                    const slowProgress = (progress - 0.8) / 0.2;
+                    const slowEase = 1 - Math.pow(1 - slowProgress, 2);
+
+                    // 旋转从当前角度渐渐回到 0（360的倍数）
+                    const rotationAtSlowStart = easeOut * totalRotationDegrees;
+                    const remainingRotation = totalRotationDegrees - rotationAtSlowStart;
+                    currentRotation = rotationAtSlowStart + slowEase * remainingRotation;
+
+                    // 位置继续移动到最终位置
+                    currentTranslateY = finalTranslateY;
+                }
+
+                // 应用 3D 变换 - 旋转 + 位移
+                reelContent.style.transform =
+                    `translateY(${currentTranslateY}px) rotateX(${currentRotation}deg)`;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // 最终状态：rotateX = 0（或360的倍数），translateY = 最终位置
+                    reelContent.style.transform =
+                        `translateY(${finalTranslateY}px) rotateX(${totalRotationDegrees}deg)`;
+
+                    // 立即重置为等效的 0 度（消除任何残留的扭曲）
+                    setTimeout(() => {
+                        reelContent.style.transition = 'none';
+                        reelContent.style.transform =
+                            `translateY(${finalTranslateY}px) rotateX(0deg)`;
+                        // 恢复过渡效果（下次动画需要）
+                        setTimeout(() => {
+                            reelContent.style.transition = 'transform 0.1s linear';
+                        }, 10);
+                    }, 10);
+
+                    resolve();
+                }
+            }
+
+            requestAnimationFrame(animate);
+        });
+    }
+
+    // Show message
+    function showMessage(message, type = 'error') {
+        messageArea.textContent = message;
+        messageArea.className = `message-area visible ${type}`;
+
+        setTimeout(() => {
+            messageArea.className = 'message-area';
+        }, 3000);
+    }
+
+    // Hide message
+    function hideMessage() {
+        messageArea.className = 'message-area';
+    }
+
+    // Update result
+    function updateResult(person) {
+        if (person) {
+            resultContent.textContent = `${person.department} / ${person.gender} / ${person.name}`;
+            resultContent.className = 'result-content';
+            resultPanel.className = 'result-panel success';
+        } else {
+            resultContent.textContent = '等待抽取...';
+            resultContent.className = 'result-content empty';
+            resultPanel.className = 'result-panel';
+        }
+    }
+
+    // Set controls disabled
+    function setControlsDisabled(disabled) {
+        startBtn.disabled = disabled;
+        deptFilter.disabled = disabled;
+        genderFilter.disabled = disabled;
+
+        if (disabled) {
+            document.getElementById('pickerContainer').classList.add('spinning');
+        } else {
+            document.getElementById('pickerContainer').classList.remove('spinning');
+        }
+    }
+
+    // Main spin logic
+    async function startSpin() {
+        if (isSpinning) return;
+
+        hideMessage();
+
+        const eligiblePeople = getEligiblePeople();
+
+        if (eligiblePeople.length === 0) {
+            showMessage('当前筛选条件下没有可抽取的人员', 'error');
+            return;
+        }
+
+        selectedPerson = randomSelectPerson(eligiblePeople);
+
+        isSpinning = true;
+        setControlsDisabled(true);
+        updateResult(null);
+
+        const isDeptLocked = deptFilter.value !== '';
+        const isGenderLocked = genderFilter.value !== '';
+
+        const deptList = isDeptLocked ? [selectedPerson.department] : departments;
+        const genderList = isGenderLocked ? [selectedPerson.gender] : genders;
+        const nameList = eligiblePeople.map(p => p.name);
+
+        reelDept.classList.toggle('locked', isDeptLocked);
+        reelGender.classList.toggle('locked', isGenderLocked);
+
+        let deptTargetIndex, genderTargetIndex, nameTargetIndex;
+
+        if (isDeptLocked) {
+            showLockedReel(selectedPerson.department, reelDeptContent);
+        } else {
+            deptTargetIndex = generateReelItems(deptList, selectedPerson.department, reelDeptContent);
+        }
+
+        if (isGenderLocked) {
+            showLockedReel(selectedPerson.gender, reelGenderContent);
+        } else {
+            genderTargetIndex = generateReelItems(genderList, selectedPerson.gender, reelGenderContent);
+        }
+
+        nameTargetIndex = generateReelItems(nameList, selectedPerson.name, reelNameContent);
+
+        const animations = [];
+
+        animations.push(
+            animateReel(reelDeptContent, deptTargetIndex, SPIN_DURATION, isDeptLocked)
+        );
+
+        animations.push(
+            new Promise(resolve => {
+                setTimeout(async () => {
+                    await animateReel(reelGenderContent, genderTargetIndex, SPIN_DURATION, isGenderLocked);
+                    resolve();
+                }, STOP_DELAY);
+            })
+        );
+
+        animations.push(
+            new Promise(resolve => {
+                setTimeout(async () => {
+                    await animateReel(reelNameContent, nameTargetIndex, SPIN_DURATION, false);
+                    resolve();
+                }, STOP_DELAY * 2);
+            })
+        );
+
+        await Promise.all(animations);
+
+        updateResult(selectedPerson);
+
+        isSpinning = false;
+        setControlsDisabled(false);
+    }
+
+    // Initialize reels
+    function initReels() {
+        reelDeptContent.innerHTML = '';
+        ['', departments[0] || '-', ''].forEach((item, i) => {
+            const div = document.createElement('div');
+            div.className = 'reel-item';
+            div.textContent = i === 1 ? item : '';
+            reelDeptContent.appendChild(div);
+        });
+        // 初始状态：中间项目（索引1）居中显示
+        reelDeptContent.style.transform = 'translateY(-60px) rotateX(0deg)';
+
+        reelGenderContent.innerHTML = '';
+        ['', genders[0] || '-', ''].forEach((item, i) => {
+            const div = document.createElement('div');
+            div.className = 'reel-item';
+            div.textContent = i === 1 ? item : '';
+            reelGenderContent.appendChild(div);
+        });
+        reelGenderContent.style.transform = 'translateY(-60px) rotateX(0deg)';
+
+        reelNameContent.innerHTML = '';
+        ['', pickerPeople[0]?.name || '-', ''].forEach((item, i) => {
+            const div = document.createElement('div');
+            div.className = 'reel-item';
+            div.textContent = i === 1 ? item : '';
+            reelNameContent.appendChild(div);
+        });
+        reelNameContent.style.transform = 'translateY(-60px) rotateX(0deg)';
+    }
+
+    // Event binding
+    startBtn.addEventListener('click', startSpin);
+
+    // Initialize
+    initFilters();
+    initReels();
+})();

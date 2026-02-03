@@ -760,3 +760,525 @@ body {
         gap: var(--spacing-sm);
     }
 }
+
+/* ==========================================
+   PICKER CONTAINER & INTEGRATION
+   ========================================== */
+
+.picker-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #8B1538 0%, #C41E3A 50%, #DC143C 100%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow-y: auto;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.picker-container.hidden {
+    opacity: 0;
+    pointer-events: none;
+    display: none;
+}
+
+/* 红包装饰 */
+.picker-container::before {
+    content: '🧧';
+    position: fixed;
+    top: 10%;
+    left: 5%;
+    font-size: 3rem;
+    opacity: 0.3;
+    animation: float 3s ease-in-out infinite;
+    z-index: 1;
+}
+
+.picker-container::after {
+    content: '🧧';
+    position: fixed;
+    top: 15%;
+    right: 5%;
+    font-size: 3rem;
+    opacity: 0.3;
+    animation: float 3s ease-in-out infinite 1.5s;
+    z-index: 1;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-20px) rotate(5deg);
+    }
+}
+
+/* 返回按钮 */
+.back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 12px 24px;
+    background: rgba(255, 215, 0, 0.95);
+    color: #8B1538;
+    border: 2px solid #FFD700;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+}
+
+.back-btn:hover {
+    background: #FFD700;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Picker 标题 - 红金渐变 */
+.picker-title {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    font-weight: 800;
+    text-align: center;
+    margin: 60px 0 10px;
+    background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    letter-spacing: 12px;
+    position: relative;
+    z-index: 10;
+}
+
+.picker-subtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 30px;
+    letter-spacing: 3px;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+}
+
+/* 筛选面板 */
+.picker-container .filter-panel {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+}
+
+.picker-container .filter-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.picker-container .filter-label {
+    font-size: 0.95rem;
+    color: #FFE5E9;
+    font-weight: 600;
+}
+
+.picker-container .filter-select {
+    padding: 12px 24px;
+    font-size: 1rem;
+    border: 2px solid #FFD700;
+    border-radius: 8px;
+    background: rgba(220, 20, 60, 0.3);
+    color: #fff;
+    cursor: pointer;
+    min-width: 160px;
+    transition: all 0.3s ease;
+}
+
+.picker-container .filter-select:hover:not(:disabled) {
+    border-color: #FFA500;
+    background: rgba(255, 215, 0, 0.3);
+}
+
+.picker-container .filter-select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.picker-container .filter-select option {
+    background: #8B1538;
+    color: #fff;
+}
+
+/* 老虎机容器 */
+.picker-container .slot-machine {
+    background: linear-gradient(180deg, #5A0F25 0%, #3D0A1A 100%);
+    border-radius: 20px;
+    padding: 30px 40px;
+    box-shadow:
+        0 0 0 4px #FFD700,
+        0 0 0 8px #8B1538,
+        0 10px 40px rgba(0, 0, 0, 0.6),
+        inset 0 2px 10px rgba(255, 215, 0, 0.15);
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 10;
+}
+
+.picker-container .reels-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.picker-container .reel-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    perspective: 1000px;
+    /* 添加透视效果 */
+}
+
+.picker-container .reel-title {
+    font-size: 1.1rem;
+    color: #FFD700;
+    margin-bottom: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+/* 单个转轮 */
+.picker-container .reel {
+    width: 140px;
+    height: 180px;
+    background: linear-gradient(180deg, #1A0A0F 0%, #2D0615 50%, #1A0A0F 100%);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    box-shadow:
+        inset 0 0 20px rgba(0, 0, 0, 0.9),
+        0 4px 15px rgba(0, 0, 0, 0.4);
+    transform-style: preserve-3d;
+    /* 保持 3D 变换 */
+}
+
+/* 转轮内容 */
+.picker-container .reel-content {
+    position: absolute;
+    width: 100%;
+    transition: transform 0.1s linear;
+    transform-style: preserve-3d;
+    /* 保持子元素 3D 变换 */
+}
+
+.picker-container .reel-item {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: #FFE5E9;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+    backface-visibility: hidden;
+    /* 隐藏背面 */
+    transform-style: preserve-3d;
+    /* 添加轻微的透视缩放，模拟圆柱曲面 */
+    opacity: 0.9;
+    transition: opacity 0.05s linear;
+}
+
+/* 高亮中间行 */
+.picker-container .reel::before,
+.picker-container .reel::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 60px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.picker-container .reel::before {
+    top: 0;
+    background: linear-gradient(180deg, rgba(45, 6, 21, 0.95) 0%, transparent 100%);
+}
+
+.picker-container .reel::after {
+    bottom: 0;
+    background: linear-gradient(0deg, rgba(45, 6, 21, 0.95) 0%, transparent 100%);
+}
+
+/* 中间高亮框 */
+.picker-container .reel-highlight {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 130px;
+    height: 56px;
+    border: 3px solid #FFD700;
+    border-radius: 6px;
+    box-shadow:
+        0 0 15px rgba(255, 215, 0, 0.5),
+        inset 0 0 10px rgba(255, 215, 0, 0.2);
+    pointer-events: none;
+    z-index: 20;
+}
+
+/* 锁定状态指示 */
+.picker-container .reel.locked {
+    opacity: 0.7;
+}
+
+.picker-container .reel.locked::before {
+    content: '🔒';
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 0.9rem;
+    z-index: 25;
+    background: none;
+    height: auto;
+}
+
+/* 开始按钮（拉杆风格） */
+.picker-container .lever-button {
+    position: relative;
+    margin: 20px 0;
+    z-index: 10;
+}
+
+.picker-container .start-btn {
+    padding: 20px 60px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #8B1538;
+    background: linear-gradient(180deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow:
+        0 6px 0 #B8860B,
+        0 10px 20px rgba(0, 0, 0, 0.4);
+    transition: all 0.15s ease;
+    letter-spacing: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.picker-container .start-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s ease;
+}
+
+.picker-container .start-btn:hover:not(:disabled)::before {
+    left: 100%;
+}
+
+.picker-container .start-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 0 #B8860B,
+        0 15px 30px rgba(0, 0, 0, 0.5);
+}
+
+.picker-container .start-btn:active:not(:disabled) {
+    transform: translateY(4px);
+    box-shadow:
+        0 2px 0 #B8860B,
+        0 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.picker-container .start-btn:disabled {
+    background: linear-gradient(180deg, #666 0%, #444 100%);
+    box-shadow: 0 4px 0 #333;
+    cursor: not-allowed;
+    color: #999;
+}
+
+/* 结果显示区 */
+.picker-container .result-panel {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid #FFD700;
+    border-radius: 15px;
+    padding: 25px 40px;
+    text-align: center;
+    min-width: 400px;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 10;
+}
+
+.picker-container .result-panel.success {
+    border-color: #FFA500;
+    background: rgba(255, 215, 0, 0.2);
+    box-shadow: 0 0 20px rgba(255, 165, 0, 0.3);
+}
+
+.picker-container .result-label {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.picker-container .result-content {
+    font-size: 1.6rem;
+    color: #FFD700;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+.picker-container .result-content.empty {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.2rem;
+}
+
+/* 消息/错误提示区 */
+.picker-container .message-area {
+    margin-top: 20px;
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-size: 1rem;
+    text-align: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 10;
+}
+
+.picker-container .message-area.visible {
+    opacity: 1;
+}
+
+.picker-container .message-area.error {
+    background: rgba(231, 76, 60, 0.3);
+    border: 2px solid #e74c3c;
+    color: #ff6b6b;
+}
+
+.picker-container .message-area.info {
+    background: rgba(52, 152, 219, 0.3);
+    border: 2px solid #3498db;
+    color: #5dade2;
+}
+
+/* 底部信息 */
+.picker-container .picker-footer {
+    margin-top: auto;
+    padding-top: 40px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.85rem;
+    position: relative;
+    z-index: 10;
+}
+
+/* 旋转动画 */
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+.picker-container.spinning .slot-machine {
+    animation: pulse 0.5s ease-in-out infinite;
+}
+
+/* ==========================================
+   PICKER BUTTON IN ROUND PREVIEW
+   ========================================== */
+
+.props-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.picker-btn {
+    padding: 10px 18px;
+    background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+    color: #8B1538;
+    border: 2px solid #FFD700;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(255, 215, 0, 0.3);
+    font-family: var(--font-display);
+}
+
+.picker-btn:hover {
+    background: linear-gradient(180deg, #FFA500 0%, #FF8C00 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.5);
+}
+
+.picker-btn:active {
+    transform: translateY(0);
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+    .picker-title {
+        font-size: 2.5rem;
+        letter-spacing: 6px;
+    }
+
+    .picker-container .filter-panel {
+        gap: 15px;
+    }
+
+    .picker-container .reels-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .picker-container .reel {
+        width: 180px;
+    }
+
+    .picker-container .slot-machine {
+        padding: 20px;
+    }
+
+    .picker-container .result-panel {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .picker-container .start-btn {
+        padding: 15px 40px;
+        font-size: 1.3rem;
+    }
+}

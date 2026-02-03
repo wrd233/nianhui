@@ -50,6 +50,81 @@
         </div>
     </main>
 
+    <!-- Picker Container (Hidden by default) -->
+    <div id="pickerContainer" class="picker-container hidden">
+        <!-- 返回按钮 -->
+        <button id="backToPresentation" class="back-btn">← 返回演示</button>
+
+        <!-- 主标题 -->
+        <h1 class="picker-title">信通大转盘</h1>
+        <p class="picker-subtitle">内部人员随机抽取系统</p>
+
+        <!-- 筛选面板 -->
+        <div class="filter-panel">
+            <div class="filter-group">
+                <label class="filter-label" for="pickerDeptFilter">部门筛选</label>
+                <select id="pickerDeptFilter" class="filter-select">
+                    <option value="">不限</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label" for="pickerGenderFilter">性别筛选</label>
+                <select id="pickerGenderFilter" class="filter-select">
+                    <option value="">不限</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 老虎机主体 -->
+        <div class="slot-machine">
+            <div class="reels-container">
+                <!-- 部门转轮 -->
+                <div class="reel-wrapper">
+                    <div class="reel-title">部 门</div>
+                    <div class="reel" id="pickerReelDept">
+                        <div class="reel-content" id="pickerReelDeptContent"></div>
+                        <div class="reel-highlight"></div>
+                    </div>
+                </div>
+                <!-- 性别转轮 -->
+                <div class="reel-wrapper">
+                    <div class="reel-title">性 别</div>
+                    <div class="reel" id="pickerReelGender">
+                        <div class="reel-content" id="pickerReelGenderContent"></div>
+                        <div class="reel-highlight"></div>
+                    </div>
+                </div>
+                <!-- 姓名转轮 -->
+                <div class="reel-wrapper">
+                    <div class="reel-title">姓 名</div>
+                    <div class="reel" id="pickerReelName">
+                        <div class="reel-content" id="pickerReelNameContent"></div>
+                        <div class="reel-highlight"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 开始按钮 -->
+        <div class="lever-button">
+            <button id="pickerStartBtn" class="start-btn">开始摇号</button>
+        </div>
+
+        <!-- 结果显示区 -->
+        <div class="result-panel" id="pickerResultPanel">
+            <div class="result-label">本次抽中人员</div>
+            <div class="result-content empty" id="pickerResultContent">等待抽取...</div>
+        </div>
+
+        <!-- 消息提示区 -->
+        <div class="message-area" id="pickerMessageArea"></div>
+
+        <!-- 底部信息 -->
+        <div class="picker-footer">
+            © 2026 信通公司 · 内部使用
+        </div>
+    </div>
+
     <!-- Instructional Overlay -->
     <div id="instructionOverlay" class="instruction-overlay">
         <div class="instruction-content">
