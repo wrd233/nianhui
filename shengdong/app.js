@@ -495,6 +495,22 @@ function prevSlide() {
     }
 }
 
+function handleSpaceKey() {
+    const currentSlide = document.querySelector('.slide.active');
+    if (!currentSlide) return;
+
+    // Check for video element
+    const video = currentSlide.querySelector('video');
+
+    if (video) {
+        if (video.paused) {
+            video.play();
+        } else {
+            video.pause();
+        }
+    }
+}
+
 // ==========================================
 // FULLSCREEN
 // ==========================================
@@ -701,8 +717,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Keyboard navigation
     document.addEventListener('keydown', (e) => {
         switch (e.key) {
-            case 'ArrowRight':
             case ' ':
+                e.preventDefault();
+                handleSpaceKey();
+                break;
+            case 'ArrowRight':
             case 'PageDown':
                 e.preventDefault();
                 nextSlide();

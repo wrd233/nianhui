@@ -936,9 +936,59 @@
         function nextSlide() { goToSlide(currentSlideIndex + 1); }
         function prevSlide() { goToSlide(currentSlideIndex - 1); }
 
+        // ===========================
+        // SPACE KEY HANDLER
+        // ===========================
+        function handleSpaceKey() {
+            const currentSlide = document.querySelector('.slide.active');
+            if (!currentSlide) return;
+
+            // Priority 1: Check for answer reveal button
+            const revealBtn = currentSlide.querySelector('.reveal-btn');
+            if (revealBtn) {
+                revealBtn.click();
+                return;
+            }
+
+            // Priority 2: Check for video element
+            const video = currentSlide.querySelector('video');
+            if (video) {
+                if (video.paused) {
+                    video.play();
+                } else {
+                    video.pause();
+                }
+                return;
+            }
+
+            // Priority 3: Check for audio element
+            const audio = currentSlide.querySelector('audio');
+            if (audio) {
+                if (audio.paused) {
+                    audio.play();
+                } else {
+                    audio.pause();
+                }
+                return;
+            }
+        }
+
+        // ===========================
+        // KEYBOARD NAVIGATION
+        // ===========================
         document.addEventListener('keydown', (e) => {
-            if (['ArrowRight', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); nextSlide(); }
-            if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); prevSlide(); }
+            if (e.key === ' ') {
+                e.preventDefault();
+                handleSpaceKey();
+            }
+            if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+                e.preventDefault();
+                nextSlide();
+            }
+            if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                prevSlide();
+            }
         });
     </script>
 </body>
