@@ -154,7 +154,7 @@ const baseSlides = [
         data: {
             title: '声动信通',
             subtitle: '沉浸式角色扮演体验',
-            emoji: '🎭'
+            emoji: '' // Removed mask emoji as requested
         }
     },
     {
@@ -197,38 +197,25 @@ const baseSlides = [
 // ASSET LOADING
 // ==========================================
 
-async function selectAssetsFolder() {
+async function handleFileSelect(event) {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+
+    contentFiles = files;
+    console.log(`📂 Selected ${files.length} files`);
+
     try {
-        // Check if File System Access API is supported
-        if (!window.showDirectoryPicker) {
-            alert('您的浏览器不支持文件系统访问API。请使用最新版本的Chrome或Edge。');
-            return;
-        }
-
-        // Request directory access
-        assetsDirectoryHandle = await window.showDirectoryPicker({
-            mode: 'read'
-        });
-
-        console.log('📁 Folder selected:', assetsDirectoryHandle.name);
-
-        // Scan for rounds
         await scanRoundsFolder();
-
-        // Load background image
-        await loadBackground(assetsDirectoryHandle);
+        await loadBackground();
 
         // Hide instruction overlay
         document.getElementById('instructionOverlay').classList.add('hidden');
 
         // Initialize presentation
         initializePresentation();
-
     } catch (error) {
-        if (error.name !== 'AbortError') {
-            console.error('❌ Error selecting folder:', error);
-            alert('无法访问文件夹。请确保您已授予权限。');
-        }
+        console.error('❌ Error initializing presentation:', error);
+        alert('无法初始化演示，请检查控制台错误信息。');
     }
 }
 
@@ -236,34 +223,38 @@ async function scanRoundsFolder() {
     try {
         roundSlides = [];
 
-        // Look for "rounds" directory
-        let roundsDir = null;
-        for await (const entry of assetsDirectoryHandle.values()) {
-            if (entry.kind === 'directory' && entry.name.toLowerCase() === 'rounds') {
-                roundsDir = entry;
-                break;
-            }
-        }
+        // Group files by round directory
+        // Expected structure: rounds/roundName/file
+        const roundsMap = new Map();
 
-        if (!roundsDir) {
-            console.warn('⚠️ No "rounds" folder found');
+        contentFiles.forEach(file => {
+            const pathParts = (file.webkitRelativePath || file.name).split('/');
+            // Check if file is inside a "rounds" directory
+            // e.g., root/rounds/round1/video.mp4 -> parts: [root, rounds, round1, video.mp4]
+            // We need to robustly find "rounds" segment
+            const roundsIndex = pathParts.findIndex(p => p.toLowerCase() === 'rounds');
+
+            if (roundsIndex !== -1 && roundsIndex + 2 < pathParts.length) {
+                const roundName = pathParts[roundsIndex + 1];
+                if (!roundsMap.has(roundName)) {
+                    roundsMap.set(roundName, []);
+                }
+                roundsMap.get(roundName).push(file);
+            }
+        });
+
+        if (roundsMap.size === 0) {
+            console.warn('⚠️ No rounds found in "rounds" folder');
             return;
         }
 
-        // Scan each round subdirectory
-        const roundFolders = [];
-        for await (const entry of roundsDir.values()) {
-            if (entry.kind === 'directory') {
-                roundFolders.push(entry);
-            }
-        }
+        // Convert map to array and sort by round name
+        const roundNames = Array.from(roundsMap.keys()).sort();
 
-        // Sort folders alphabetically
-        roundFolders.sort((a, b) => a.name.localeCompare(b.name));
+        for (const roundName of roundNames) {
+            const files = roundsMap.get(roundName);
+            const roundData = await loadRoundDataFromFiles(files, roundName);
 
-        // Load data for each round
-        for (const roundFolder of roundFolders) {
-            const roundData = await loadRoundData(roundFolder);
             if (roundData) {
                 // Generate TWO slides per round
                 roundSlides.push({
@@ -285,114 +276,112 @@ async function scanRoundsFolder() {
     }
 }
 
-async function loadRoundData(roundFolderHandle) {
-    try {
-        let infoData = {};
-        let originalVideoUrl = null;
-        let dubbingVideoUrl = null;
-        let posterUrl = null;
+async function loadRoundDataFromFiles(files, roundName) {
+    let infoData = {};
+    let originalVideoUrl = null;
+    let dubbingVideoUrl = null;
+    let posterUrl = null;
 
-        // Read files in round folder
-        for await (const entry of roundFolderHandle.values()) {
-            if (entry.kind === 'file') {
-                const file = await entry.getFile();
+    // Helper to read file as text
+    const readFileText = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsText(file);
+    });
 
-                // Parse info.json
-                if (entry.name.toLowerCase() === 'info.json') {
-                    const text = await file.text();
-                    infoData = JSON.parse(text);
-                }
+    for (const file of files) {
+        const fileName = file.name.toLowerCase();
 
-                // Load original video (with vocals)
-                if (entry.name.toLowerCase() === 'original.mp4') {
-                    originalVideoUrl = URL.createObjectURL(file);
-                }
-
-                // Load dubbing video (vocal-removed)
-                if (entry.name.toLowerCase() === 'dubbing.mp4') {
-                    dubbingVideoUrl = URL.createObjectURL(file);
-                }
-
-                // Load poster
-                if (entry.name.toLowerCase().endsWith('.jpg') ||
-                    entry.name.toLowerCase().endsWith('.jpeg') ||
-                    entry.name.toLowerCase().endsWith('.png')) {
-                    posterUrl = URL.createObjectURL(file);
-                }
+        if (fileName === 'info.json') {
+            try {
+                const text = await readFileText(file);
+                infoData = JSON.parse(text);
+            } catch (e) {
+                console.error(`Error parsing info.json for ${roundName}:`, e);
             }
+        } else if (fileName === 'original.mp4') {
+            originalVideoUrl = URL.createObjectURL(file);
+        } else if (fileName === 'dubbing.mp4') {
+            dubbingVideoUrl = URL.createObjectURL(file);
+        } else if (/\.(jpg|jpeg|png)$/.test(fileName) && !fileName.startsWith('background.')) {
+            posterUrl = URL.createObjectURL(file);
         }
-
-        // Construct round data
-        return {
-            title: infoData.title || roundFolderHandle.name,
-            players: infoData.players || 'N/A',
-            difficulty: infoData.difficulty || 'Medium',
-            extraInfo: infoData.extraInfo || null,
-            props: infoData.props || [],
-            radar: infoData.radar || {
-                emotion: 3,
-                speed: 3,
-                accuracy: 3,
-                interaction: 3,
-                action: 3,
-                creativity: 3
-            },
-            originalVideoUrl,
-            dubbingVideoUrl,
-            posterUrl
-        };
-
-    } catch (error) {
-        console.error(`❌ Error loading round data for ${roundFolderHandle.name}:`, error);
-        return null;
     }
+
+    return {
+        id: roundName,
+        title: infoData.title || roundName,
+        originalVideoUrl: originalVideoUrl,
+        dubbingVideoUrl: dubbingVideoUrl,
+        posterUrl: posterUrl,
+        players: infoData.players,
+        difficulty: infoData.difficulty,
+        extraInfo: infoData.extraInfo,
+        props: infoData.props || [],
+        radar: infoData.radar || {
+            emotion: 3,
+            speed: 3,
+            accuracy: 3,
+            interaction: 3,
+            action: 3,
+            creativity: 3
+        }
+    };
 }
 
-async function loadBackground(directoryHandle) {
-    try {
-        let bgFileHandle = null;
+async function loadBackground() {
+    // Look for background.jpg/png/etc in root or assets folder
+    // contentFiles is a flat array of File objects with webkitRelativePath
 
-        // 1. Check root directory for background.jpg/png/etc
-        for await (const entry of directoryHandle.values()) {
-            if (entry.kind === 'file' && entry.name.match(/^background\.(jpg|jpeg|png|webp)$/i)) {
-                bgFileHandle = entry;
-                break;
-            }
-        }
+    // Priorities:
+    // 1. Root background.*
+    // 2. assets/background.*
 
-        // 2. If not in root, check assets/ folder if it exists
-        if (!bgFileHandle) {
-            // We need to see if there is an assets folder
-            try {
-                const assetsDir = await directoryHandle.getDirectoryHandle('assets');
-                for await (const entry of assetsDir.values()) {
-                    if (entry.kind === 'file' && entry.name.match(/^background\.(jpg|jpeg|png|webp)$/i)) {
-                        bgFileHandle = entry;
-                        break;
-                    }
+    const bgFile = contentFiles.find(f => {
+        const path = (f.webkitRelativePath || f.name).toLowerCase();
+        const name = f.name.toLowerCase();
+
+        // Check if file is an image
+        if (!/\.(jpg|jpeg|png|webp)$/i.test(name)) return false;
+
+        // Check filename
+        if (!name.startsWith('background.')) return false;
+
+        // Check location
+        const parts = path.split('/');
+
+        // Root file: RootFolder/background.jpg (2 parts)
+        if (parts.length === 2) return true;
+
+        // Assets folder file: RootFolder/assets/background.jpg (3 parts)
+        if (parts.length === 3 && parts[1] === 'assets') return true;
+
+        return false;
+    });
+
+    if (bgFile) {
+        try {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const url = e.target.result;
+                // Update CSS variable
+                document.documentElement.style.setProperty('--bg-gradient', `url('${url}') no-repeat center center fixed`);
+
+                // Also update .background element if exists
+                const bgEl = document.querySelector('.background');
+                if (bgEl) {
+                    bgEl.style.backgroundImage = `url('${url}')`;
+                    bgEl.style.backgroundSize = 'cover';
                 }
-            } catch (e) {
-                // assets folder might not exist, ignore
-            }
+                console.log(`✅ Loaded background: ${bgFile.name}`);
+            };
+            reader.readAsDataURL(bgFile);
+        } catch (e) {
+            console.warn('⚠️ Failed to load background image:', e);
         }
-
-        if (bgFileHandle) {
-            const file = await bgFileHandle.getFile();
-            const url = URL.createObjectURL(file);
-            console.log(`✅ Loaded background: ${bgFileHandle.name}`);
-
-            // Update CSS variable
-            // note: the CSS uses: url('...') no-repeat center center fixed
-            document.documentElement.style.setProperty('--bg-gradient', `url('${url}') no-repeat center center fixed`);
-
-            // Also ensure the element has background-size: cover if not already guaranteed by shorthand or class
-            const bgEl = document.querySelector('.background');
-            if (bgEl) {
-                bgEl.style.backgroundSize = 'cover';
-            }
-        }
-    } catch (error) {
-        console.warn('⚠️ Failed to load background image:', error);
+    } else {
+        console.log('ℹ️ No custom background found, using default');
     }
 }
 
@@ -713,7 +702,7 @@ function drawRadarChart(canvasId, data) {
 
 document.addEventListener('DOMContentLoaded', () => {
     // Folder selection
-    document.getElementById('selectFolderBtn').addEventListener('click', selectAssetsFolder);
+    // Managed via inline onclick in HTML
 
     // Navigation buttons
     document.getElementById('prevBtn').addEventListener('click', prevSlide);

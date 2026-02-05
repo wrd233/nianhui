@@ -128,14 +128,19 @@
     <!-- Instructional Overlay -->
     <div id="instructionOverlay" class="instruction-overlay">
         <div class="instruction-content">
-            <h1>🎭 互动剧本杀演示</h1>
-            <p>欢迎！请选择您的资源文件夹以开始。</p>
-            <button id="selectFolderBtn" class="select-folder-btn">
-                📁 选择资源文件夹
+            <div class="icon">📂</div>
+            <h1>Select Content Folder</h1>
+            <p>Please select the folder containing assets.</p>
+            <p class="sub-text">Folder structure: /rounds/[round_name]/...</p>
+            <button class="select-btn" onclick="document.getElementById('folder-input').click()">
+                Select Folder
             </button>
-            <div class="instruction-info">
-                <p><strong>预期结构：</strong></p>
-                <pre>assets/
+            <input type="file" id="folder-input" webkitdirectory multiple style="display:none"
+                onchange="handleFileSelect(event)">
+        </div>
+        <div class="instruction-info">
+            <p><strong>预期结构：</strong></p>
+            <pre>assets/
   rounds/
     round1/
       video.mp4
@@ -143,10 +148,10 @@
       info.json
     round2/
       ...</pre>
-                <p class="tip">💡 按 <kbd>→</kbd> 或 <kbd>空格键</kbd> 切换幻灯片</p>
-                <p class="tip">💡 按 <kbd>F</kbd> 切换全屏模式</p>
-            </div>
+            <p class="tip">💡 按 <kbd>→</kbd> 或 <kbd>空格键</kbd> 切换幻灯片</p>
+            <p class="tip">💡 按 <kbd>F</kbd> 切换全屏模式</p>
         </div>
+    </div>
     </div>
 
     <script src="app.js"></script>
