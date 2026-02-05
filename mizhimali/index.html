@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>年会知识问答</title>
+    <script src="config.js"></script>
     <style>
         :root {
             --primary-color: #C41E3A;
@@ -451,17 +452,67 @@
             background: linear-gradient(135deg, #2D0615 0%, #1A0A0F 100%);
             border: 3px solid var(--gold);
             border-radius: 20px;
-            padding: 3rem 4rem;
-            max-width: 75%;
-            max-height: 60%;
-            text-align: center;
+            padding: 2.5rem 3rem;
+            max-width: 80%;
+            max-height: 75%;
+            text-align: left;
             color: white;
-            font-size: 2.2rem;
+            font-size: 1.2rem;
             line-height: 1.6;
             box-shadow:
                 0 0 60px rgba(255, 215, 0, 0.4),
                 0 20px 60px rgba(0, 0, 0, 0.5);
             animation: popIn 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .answer-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            padding-bottom: 1rem;
+        }
+
+        .answer-card .card-name {
+            font-size: 1.6rem;
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        .answer-card .card-score {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #1a0a0f;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .answer-card .card-answer {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            line-height: 1.8;
+        }
+
+        .answer-card .card-comment {
+            font-size: 1.1rem;
+            color: #ccc;
+            font-style: italic;
+            border-left: 3px solid var(--gold);
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .answer-card .card-comment-label {
+            font-size: 0.9rem;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
         }
 
         @keyframes popIn {
@@ -477,7 +528,8 @@
         }
 
         .answer-card .card-hint {
-            margin-top: 2rem;
+            margin-top: 1.5rem;
+            text-align: center;
             font-size: 1rem;
             color: rgba(255, 255, 255, 0.5);
         }
@@ -979,30 +1031,18 @@
                     break;
 
                 case 'round4-answers':
-                    // Round 4 第二页：题目 + 7条回答列表
-                    const answers = [
-                        '示例回答 1 - 点击编辑',
-                        '示例回答 2 - 点击编辑',
-                        '示例回答 3 - 点击编辑',
-                        '示例回答 4 - 点击编辑',
-                        '示例回答 5 - 点击编辑',
-                        '示例回答 6 - 点击编辑',
-                        '示例回答 7 - 点击编辑'
-                    ];
+                    // Round 4 第二页：题目 + 回答列表（从后端API获取）
+                    const questionNum = slideData.questionNumber;
                     div.innerHTML = `
                         <div class="answers-container">
                             <div class="prompt-small">${slideData.question.prompt}</div>
-                            <div class="answer-list">
-                                ${answers.map((ans, i) => {
-                        let rankClass = '';
-                        if (i === 0) rankClass = 'rank-1';
-                        else if (i === 1) rankClass = 'rank-2';
-                        else if (i === 2) rankClass = 'rank-3';
-                        return `<div class="answer-item ${rankClass}" data-answer="${ans}">${ans}</div>`;
-                    }).join('')}
+                            <div class="answer-list" data-question="${questionNum}">
+                                <div class="answer-item" style="text-align:center; cursor:default;">加载中...</div>
                             </div>
                         </div>
                     `;
+                    // 异步加载答案
+                    loadRound4Answers(questionNum, div.querySelector('.answer-list'));
                     break;
 
                 case 'ending':
@@ -1071,13 +1111,52 @@
             }
         }
 
+        // Round 4 从后端加载答案
+        async function loadRound4Answers(questionNum, containerEl) {
+            try {
+                const response = await fetch(`${CONFIG.API_BASE_URL}/api/questions/${questionNum}`);
+                if (!response.ok) throw new Error('API request failed');
+                const data = await response.json();
+
+                if (data.status === 'success' && data.submissions && data.submissions.length > 0) {
+                    // 按分数排序，取前3名
+                    const top3 = data.submissions
+                        .sort((a, b) => (b.score || 0) - (a.score || 0))
+                        .slice(0, 3);
+
+                    containerEl.innerHTML = top3.map((sub, i) => {
+                        let rankClass = '';
+                        if (i === 0) rankClass = 'rank-1';
+                        else if (i === 1) rankClass = 'rank-2';
+                        else if (i === 2) rankClass = 'rank-3';
+                        // 存储完整数据到 data 属性
+                        const subData = encodeURIComponent(JSON.stringify(sub));
+                        return `<div class="answer-item ${rankClass}" data-submission="${subData}">${sub.name}：${sub.answer}</div>`;
+                    }).join('');
+                } else {
+                    containerEl.innerHTML = '<div class="answer-item" style="text-align:center; cursor:default;">暂无提交</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load answers:', error);
+                containerEl.innerHTML = '<div class="answer-item" style="text-align:center; cursor:default;">加载失败，请检查网络</div>';
+            }
+        }
+
         // Round 4 回答卡片弹出功能
-        function showAnswerCard(content) {
+        function showAnswerCard(submission) {
             const overlay = document.createElement('div');
             overlay.className = 'answer-card-overlay';
             overlay.innerHTML = `
                 <div class="answer-card">
-                    <p>${content}</p>
+                    <div class="card-header">
+                        <span class="card-name">${submission.name}</span>
+                        <span class="card-score">得分：${submission.score || 0}</span>
+                    </div>
+                    <div class="card-answer">${submission.answer}</div>
+                    ${submission.comment ? `
+                        <div class="card-comment-label">AI 点评：</div>
+                        <div class="card-comment">${submission.comment}</div>
+                    ` : ''}
                     <div class="card-hint">点击任意处关闭</div>
                 </div>
             `;
@@ -1091,8 +1170,13 @@
         // 事件委托：监听回答条目点击
         document.addEventListener('click', (e) => {
             const answerItem = e.target.closest('.answer-item');
-            if (answerItem && answerItem.dataset.answer) {
-                showAnswerCard(answerItem.dataset.answer);
+            if (answerItem && answerItem.dataset.submission) {
+                try {
+                    const submission = JSON.parse(decodeURIComponent(answerItem.dataset.submission));
+                    showAnswerCard(submission);
+                } catch (err) {
+                    console.error('Failed to parse submission data:', err);
+                }
             }
         });
 
