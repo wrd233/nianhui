@@ -693,11 +693,12 @@
         </div>
 
         <div class="nav-controls">
-            <button class="nav-btn" id="prev-btn" onclick="prevSlide()">◀</button>
+            <!-- 左右箭头按钮已隐藏，使用键盘方向键控制 -->
+            <!-- <button class="nav-btn" id="prev-btn" onclick="prevSlide()">◀</button> -->
             <div class="slide-counter" style="color:var(--gold); font-weight:bold; margin: 0 1rem;">
                 <span id="current-slide">1</span> / <span id="total-slides">1</span>
             </div>
-            <button class="nav-btn" id="next-btn" onclick="nextSlide()">▶</button>
+            <!-- <button class="nav-btn" id="next-btn" onclick="nextSlide()">▶</button> -->
         </div>
 
         <div class="click-zone left" onclick="prevSlide()"></div>
@@ -773,15 +774,57 @@
                 throw new Error("未找到 bank.json 文件，请确保选择了正确的 content 文件夹");
             }
 
-            // Parse bank.json
-            const bankText = await bankFile.text();
+            // Parse bank.json with smart encoding detection
+            let bankText;
+            let parseError = null;
+
             try {
+                // Method 1: Try reading as UTF-8 (standard for web)
+                bankText = await bankFile.text();
                 contentData = JSON.parse(bankText);
+
+                // Success! UTF-8 worked fine
+                console.log('✅ Successfully loaded bank.json as UTF-8');
+
             } catch (e) {
-                throw new Error(`bank.json 格式错误: ${e.message}`);
+                parseError = e;
+
+                // Only try GBK if it looks like an encoding issue
+                // (not a JSON syntax error)
+                const errorMsg = e.message.toLowerCase();
+                const isEncodingIssue = errorMsg.includes('unexpected token') ||
+                    errorMsg.includes('invalid') ||
+                    bankText.includes('\uFFFD'); // Unicode replacement char
+
+                if (isEncodingIssue) {
+                    console.warn('UTF-8 decode may have issues, attempting GBK/GB18030...', e.message);
+
+                    try {
+                        // Method 2: Try reading as GBK/GB18030 (common on Windows)
+                        const reader = new FileReader();
+                        bankText = await new Promise((resolve, reject) => {
+                            reader.onload = () => resolve(reader.result);
+                            reader.onerror = reject;
+                            reader.readAsText(bankFile, 'gb18030');
+                        });
+
+                        contentData = JSON.parse(bankText);
+                        console.log('✅ Successfully loaded bank.json as GB18030');
+                        parseError = null; // Clear error
+
+                    } catch (e2) {
+                        console.error('GB18030 parsing also failed:', e2);
+                        // Keep original error for reporting
+                    }
+                }
+
+                // If still failed, throw error
+                if (parseError) {
+                    throw new Error(`bank.json 解析失败: ${parseError.message}\n提示：请确保文件是有效的 JSON 格式且使用 UTF-8 编码保存。`);
+                }
             }
 
-            console.log(`✓ 加载题库成功，共 ${contentData.rounds.length} 个环节`);
+            console.log(`✓ 加载题库成功，共 ${contentData.rounds ? contentData.rounds.length : 0} 个环节`);
 
             // Load logo
             await loadLogo(files);
@@ -1020,11 +1063,12 @@
                     break;
 
                 case 'round4-question':
-                    // Round 4 第一页：题目 + 二维码
+                    // Round 4 第一页：题目 + 二维码（根据题号动态加载）
+                    const qrImagePath = `assets/images/qr_question_${slideData.questionNumber}.png`;
                     div.innerHTML = `
                         <div class="question-content">
                             <div class="prompt">${slideData.question.prompt}</div>
-                            <img src="assets/images/qr_placeholder.png" alt="扫码提交" class="qr-code">
+                            <img src="${qrImagePath}" alt="扫码提交第${slideData.questionNumber}题" class="qr-code">
                             <p class="qr-hint">扫码提交你的奇思妙想</p>
                         </div>
                     `;
