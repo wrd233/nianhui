@@ -13,7 +13,8 @@
 
     /* Backgrounds */
     --bg-gradient: url('test-assets/background.jpg') no-repeat center center;
-    --bg-dark: #1a0a0f;
+    --bg-dark: rgba(26, 10, 15, 0.5);
+    /* Semi-transparent dark red */
     --panel-bg: rgba(196, 30, 58, 0.25);
     --panel-border: rgba(255, 215, 0, 0.4);
 

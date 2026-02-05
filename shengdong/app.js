@@ -17,7 +17,7 @@ const slideTemplates = {
             <h1>${data.title}</h1>
             <h2>${data.subtitle}</h2>
             <div class="accent-line" style="margin: 0 auto;"></div>
-            <div class="decorative">${data.emoji || '🎭'}</div>
+            ${data.emoji ? `<div class="decorative">${data.emoji}</div>` : ''}
         </div>
     `,
 
