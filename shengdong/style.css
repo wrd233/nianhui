@@ -151,6 +151,18 @@ body {
     transform: translateY(0);
 }
 
+/* Smaller navigation buttons for prev/next */
+.nav-btn-small {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    opacity: 0.7;
+}
+
+.nav-btn-small:hover {
+    opacity: 1;
+}
+
 .slide-counter {
     font-family: var(--font-display);
     font-size: 1.125rem;
