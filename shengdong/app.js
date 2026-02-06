@@ -782,48 +782,250 @@ function hidePicker() {
 // ==========================================
 
 (function initPicker() {
-    // People data
+    // People data - extracted from namelist.txt
+    // Format: { department, gender, name }
+    // Gender is empty string for now as data is not yet collected
     const pickerPeople = [
-        // 系统运维部
-        { department: "系统运维部", gender: "男", name: "系统运维部小李" },
-        { department: "系统运维部", gender: "女", name: "系统运维部小张" },
-
-        // 软件开发部
-        { department: "软件开发部", gender: "男", name: "软件开发部小李" },
-        { department: "软件开发部", gender: "女", name: "软件开发部小王" },
-
-        // 智能工程部
-        { department: "智能工程部", gender: "男", name: "智能工程部小李" },
-
-        // 数据运营部
-        { department: "数据运营部", gender: "女", name: "数据运营部小李" },
-
         // 港航物流部
-        { department: "港航物流部", gender: "男", name: "港航物流部小李" },
-
-        // 综合办公室
-        { department: "综合办公室", gender: "女", name: "综合办公室小李" },
-
-        // 技术中心
-        { department: "技术中心", gender: "男", name: "技术中心小李" },
-
-        // 后勤采购部
-        { department: "后勤采购部", gender: "女", name: "后勤采购部小李" },
-
+        { department: "港航物流部", gender: "", name: "华路" },
+        { department: "港航物流部", gender: "", name: "金亮亮" },
+        { department: "港航物流部", gender: "", name: "陈剑峰" },
+        { department: "港航物流部", gender: "", name: "张凯凯" },
+        { department: "港航物流部", gender: "", name: "刘婧瑜" },
+        { department: "港航物流部", gender: "", name: "董浩" },
+        { department: "港航物流部", gender: "", name: "蔡朱静" },
+        { department: "港航物流部", gender: "", name: "张恒" },
+        { department: "港航物流部", gender: "", name: "晏明熙" },
+        { department: "港航物流部", gender: "", name: "黄锋" },
+        { department: "港航物流部", gender: "", name: "楼嘉超" },
+        { department: "港航物流部", gender: "", name: "潘宇轩" },
+        { department: "港航物流部", gender: "", name: "刘文韬" },
+        { department: "港航物流部", gender: "", name: "胡立博文" },
+        { department: "港航物流部", gender: "", name: "邱倬亮" },
+        { department: "港航物流部", gender: "", name: "徐逸凡" },
+        { department: "港航物流部", gender: "", name: "陈安迪" },
+        { department: "港航物流部", gender: "", name: "颜豪洁" },
+        { department: "港航物流部", gender: "", name: "严方" },
+        { department: "港航物流部", gender: "", name: "乐碧瑶" },
+        { department: "港航物流部", gender: "", name: "马显威" },
+        { department: "港航物流部", gender: "", name: "杨帆" },
+        { department: "港航物流部", gender: "", name: "胡瞿益" },
+        { department: "港航物流部", gender: "", name: "沈贺嵩" },
+        { department: "港航物流部", gender: "", name: "张云" },
+        { department: "港航物流部", gender: "", name: "赵宇舟" },
+        { department: "港航物流部", gender: "", name: "胡子威" },
+        { department: "港航物流部", gender: "", name: "周同" },
+        { department: "港航物流部", gender: "", name: "余娜" },
+        // 港运通
+        { department: "港运通", gender: "", name: "傅云娟" },
+        // 后勤采购中心
+        { department: "后勤采购中心", gender: "", name: "麻凌涛" },
+        { department: "后勤采购中心", gender: "", name: "柯洁" },
+        { department: "后勤采购中心", gender: "", name: "牛文晶" },
+        { department: "后勤采购中心", gender: "", name: "孙涌涛" },
+        { department: "后勤采购中心", gender: "", name: "张坤" },
+        { department: "后勤采购中心", gender: "", name: "汪凌云" },
+        { department: "后勤采购中心", gender: "", name: "吴嘉喻" },
         // 计划财务部
-        { department: "计划财务部", gender: "男", name: "计划财务部小李" },
-
+        { department: "计划财务部", gender: "", name: "钟慧倩" },
+        { department: "计划财务部", gender: "", name: "张怡" },
+        { department: "计划财务部", gender: "", name: "陈蔚" },
+        { department: "计划财务部", gender: "", name: "顾辰奕" },
+        { department: "计划财务部", gender: "", name: "王汇" },
+        { department: "计划财务部", gender: "", name: "赵雅婷" },
+        { department: "计划财务部", gender: "", name: "崔骏" },
+        // 技术中心
+        { department: "技术中心", gender: "", name: "汪健" },
+        { department: "技术中心", gender: "", name: "王爱女" },
+        { department: "技术中心", gender: "", name: "贺伟国" },
+        { department: "技术中心", gender: "", name: "滕雷斌" },
+        { department: "技术中心", gender: "", name: "陆一芸" },
+        { department: "技术中心", gender: "", name: "张柳宁" },
+        { department: "技术中心", gender: "", name: "陈龙" },
+        { department: "技术中心", gender: "", name: "金睿凝" },
+        { department: "技术中心", gender: "", name: "刘挺" },
+        // 宁波电子口岸
+        { department: "宁波电子口岸", gender: "", name: "周吉" },
+        // 软件开发部
+        { department: "软件开发部", gender: "", name: "吴晓崧" },
+        { department: "软件开发部", gender: "", name: "张驰" },
+        { department: "软件开发部", gender: "", name: "罗雯洁" },
+        { department: "软件开发部", gender: "", name: "顾增晖" },
+        { department: "软件开发部", gender: "", name: "蒋舟" },
+        { department: "软件开发部", gender: "", name: "胡晶" },
+        { department: "软件开发部", gender: "", name: "周小成" },
+        { department: "软件开发部", gender: "", name: "项珂艳" },
+        { department: "软件开发部", gender: "", name: "胡彬" },
+        { department: "软件开发部", gender: "", name: "马赟" },
+        { department: "软件开发部", gender: "", name: "奚天晔" },
+        { department: "软件开发部", gender: "", name: "周宇浩" },
+        { department: "软件开发部", gender: "", name: "雷佳晨" },
+        { department: "软件开发部", gender: "", name: "王惟贇" },
+        { department: "软件开发部", gender: "", name: "胡斌" },
+        { department: "软件开发部", gender: "", name: "郭海滨" },
+        { department: "软件开发部", gender: "", name: "姚奕存" },
+        { department: "软件开发部", gender: "", name: "徐晨林" },
+        { department: "软件开发部", gender: "", name: "陈泱" },
+        { department: "软件开发部", gender: "", name: "朱海玉" },
+        { department: "软件开发部", gender: "", name: "王佳敏" },
+        { department: "软件开发部", gender: "", name: "岑恩杰" },
+        { department: "软件开发部", gender: "", name: "李梓恒" },
+        { department: "软件开发部", gender: "", name: "侯柯羽" },
+        { department: "软件开发部", gender: "", name: "史俞" },
+        { department: "软件开发部", gender: "", name: "杨烜" },
+        { department: "软件开发部", gender: "", name: "林鹏腾" },
+        { department: "软件开发部", gender: "", name: "蔡宇翔" },
+        { department: "软件开发部", gender: "", name: "王宇翔" },
+        { department: "软件开发部", gender: "", name: "陈琪泽" },
+        { department: "软件开发部", gender: "", name: "陈杰" },
+        { department: "软件开发部", gender: "", name: "林立" },
+        { department: "软件开发部", gender: "", name: "林瑞祥" },
+        { department: "软件开发部", gender: "", name: "解宇隆" },
+        { department: "软件开发部", gender: "", name: "冯展望" },
+        { department: "软件开发部", gender: "", name: "陈凯" },
         // 市场部
-        { department: "市场部", gender: "女", name: "市场部小李" }
+        { department: "市场部", gender: "", name: "忻杰" },
+        { department: "市场部", gender: "", name: "毛水英" },
+        { department: "市场部", gender: "", name: "马军" },
+        { department: "市场部", gender: "", name: "常宁" },
+        { department: "市场部", gender: "", name: "叶又锦" },
+        { department: "市场部", gender: "", name: "徐杭炜" },
+        { department: "市场部", gender: "", name: "闵禹乔" },
+        { department: "市场部", gender: "", name: "朱梓炎" },
+        { department: "市场部", gender: "", name: "汪先波" },
+        { department: "市场部", gender: "", name: "曹思超" },
+        // 数据运营部
+        { department: "数据运营部", gender: "", name: "王振勇" },
+        { department: "数据运营部", gender: "", name: "毛雯雯" },
+        { department: "数据运营部", gender: "", name: "吕作印" },
+        { department: "数据运营部", gender: "", name: "周桢挺" },
+        { department: "数据运营部", gender: "", name: "杜卓伟" },
+        { department: "数据运营部", gender: "", name: "何丽莎" },
+        { department: "数据运营部", gender: "", name: "赵世浩" },
+        { department: "数据运营部", gender: "", name: "朱丹勇" },
+        { department: "数据运营部", gender: "", name: "赵泽华" },
+        { department: "数据运营部", gender: "", name: "张正源" },
+        { department: "数据运营部", gender: "", name: "叶政艺" },
+        { department: "数据运营部", gender: "", name: "陈悦" },
+        { department: "数据运营部", gender: "", name: "李哲祺" },
+        { department: "数据运营部", gender: "", name: "忻奕杰" },
+        { department: "数据运营部", gender: "", name: "翁晨阳" },
+        { department: "数据运营部", gender: "", name: "李欣雨" },
+        { department: "数据运营部", gender: "", name: "虞正树" },
+        { department: "数据运营部", gender: "", name: "郝恩蔚" },
+        { department: "数据运营部", gender: "", name: "张海宁" },
+        { department: "数据运营部", gender: "", name: "屠增健" },
+        { department: "数据运营部", gender: "", name: "殷学远" },
+        { department: "数据运营部", gender: "", name: "李霜双" },
+        { department: "数据运营部", gender: "", name: "程仁义" },
+        { department: "数据运营部", gender: "", name: "王雪燕" },
+        // 系统运维部
+        { department: "系统运维部", gender: "", name: "张方方" },
+        { department: "系统运维部", gender: "", name: "范巍" },
+        { department: "系统运维部", gender: "", name: "李世斌" },
+        { department: "系统运维部", gender: "", name: "郑扬平" },
+        { department: "系统运维部", gender: "", name: "郑超前" },
+        { department: "系统运维部", gender: "", name: "陈晔" },
+        { department: "系统运维部", gender: "", name: "胡星飞" },
+        { department: "系统运维部", gender: "", name: "宋文誉" },
+        { department: "系统运维部", gender: "", name: "柯东宇" },
+        { department: "系统运维部", gender: "", name: "范剑雄" },
+        { department: "系统运维部", gender: "", name: "陈荣" },
+        { department: "系统运维部", gender: "", name: "王利军" },
+        { department: "系统运维部", gender: "", name: "朱力" },
+        { department: "系统运维部", gender: "", name: "张硕" },
+        { department: "系统运维部", gender: "", name: "黄高立" },
+        { department: "系统运维部", gender: "", name: "夏超俊" },
+        { department: "系统运维部", gender: "", name: "戴俊杰" },
+        { department: "系统运维部", gender: "", name: "马书勤" },
+        { department: "系统运维部", gender: "", name: "叶晋" },
+        { department: "系统运维部", gender: "", name: "汪迪" },
+        { department: "系统运维部", gender: "", name: "陈庆南" },
+        { department: "系统运维部", gender: "", name: "罗哲扬" },
+        { department: "系统运维部", gender: "", name: "冯诚淏" },
+        { department: "系统运维部", gender: "", name: "包思诚" },
+        { department: "系统运维部", gender: "", name: "杜琛涛" },
+        { department: "系统运维部", gender: "", name: "金崇实" },
+        { department: "系统运维部", gender: "", name: "王润东" },
+        { department: "系统运维部", gender: "", name: "顾玮" },
+        { department: "系统运维部", gender: "", name: "秦涛" },
+        { department: "系统运维部", gender: "", name: "金径" },
+        { department: "系统运维部", gender: "", name: "张骏" },
+        { department: "系统运维部", gender: "", name: "徐雷" },
+        { department: "系统运维部", gender: "", name: "袁洁" },
+        { department: "系统运维部", gender: "", name: "黄佳奇" },
+        { department: "系统运维部", gender: "", name: "史凌怡" },
+        { department: "系统运维部", gender: "", name: "谢超群" },
+        { department: "系统运维部", gender: "", name: "徐步云" },
+        { department: "系统运维部", gender: "", name: "郑欣" },
+        { department: "系统运维部", gender: "", name: "章力博" },
+        { department: "系统运维部", gender: "", name: "陈航裕" },
+        // 颐博科技
+        { department: "颐博科技", gender: "", name: "王汉君" },
+        { department: "颐博科技", gender: "", name: "蔡婕" },
+        { department: "颐博科技", gender: "", name: "卢伟力" },
+        { department: "颐博科技", gender: "", name: "乔耿嘉" },
+        // 智能工程部
+        { department: "智能工程部", gender: "", name: "唐志钧" },
+        { department: "智能工程部", gender: "", name: "毛意峰" },
+        { department: "智能工程部", gender: "", name: "蔡顺强" },
+        { department: "智能工程部", gender: "", name: "应楠娜" },
+        { department: "智能工程部", gender: "", name: "陆斌" },
+        { department: "智能工程部", gender: "", name: "周涵" },
+        { department: "智能工程部", gender: "", name: "吴高德" },
+        { department: "智能工程部", gender: "", name: "方佳斌" },
+        { department: "智能工程部", gender: "", name: "胡迁辉" },
+        { department: "智能工程部", gender: "", name: "李奇" },
+        { department: "智能工程部", gender: "", name: "华杰" },
+        { department: "智能工程部", gender: "", name: "杨侃" },
+        { department: "智能工程部", gender: "", name: "易杨林" },
+        { department: "智能工程部", gender: "", name: "胡斌斌" },
+        { department: "智能工程部", gender: "", name: "夏泽华" },
+        { department: "智能工程部", gender: "", name: "叶倩莹" },
+        { department: "智能工程部", gender: "", name: "杨子江" },
+        { department: "智能工程部", gender: "", name: "黄韬霖" },
+        { department: "智能工程部", gender: "", name: "娄城" },
+        { department: "智能工程部", gender: "", name: "鲍朝前" },
+        { department: "智能工程部", gender: "", name: "贺冰之" },
+        { department: "智能工程部", gender: "", name: "杨昆霖" },
+        { department: "智能工程部", gender: "", name: "何文珂" },
+        { department: "智能工程部", gender: "", name: "王嘉羽" },
+        { department: "智能工程部", gender: "", name: "欧阳康" },
+        { department: "智能工程部", gender: "", name: "陈培琰" },
+        { department: "智能工程部", gender: "", name: "马雨骐" },
+        { department: "智能工程部", gender: "", name: "杨正" },
+        { department: "智能工程部", gender: "", name: "杨煜" },
+        { department: "智能工程部", gender: "", name: "张驰" },
+        { department: "智能工程部", gender: "", name: "贺晓宇" },
+        { department: "智能工程部", gender: "", name: "李银辉" },
+        { department: "智能工程部", gender: "", name: "王君宇" },
+        { department: "智能工程部", gender: "", name: "张金硕" },
+        { department: "智能工程部", gender: "", name: "郭跃波" },
+        { department: "智能工程部", gender: "", name: "蔡正奕" },
+        { department: "智能工程部", gender: "", name: "柯锡芬" },
+        // 综合办公室
+        { department: "综合办公室", gender: "", name: "吴俊尉" },
+        { department: "综合办公室", gender: "", name: "闻佳颖" },
+        { department: "综合办公室", gender: "", name: "丁寅" },
+        { department: "综合办公室", gender: "", name: "叶琦" },
+        { department: "综合办公室", gender: "", name: "邬佳昱" },
+        { department: "综合办公室", gender: "", name: "徐睿" },
+        { department: "综合办公室", gender: "", name: "朱俊帆" },
+        { department: "综合办公室", gender: "", name: "王凝韵" },
+        { department: "综合办公室", gender: "", name: "洪佳雷" }
     ];
 
     // Extract unique departments and genders
     const departments = [...new Set(pickerPeople.map(p => p.department))];
-    const genders = [...new Set(pickerPeople.map(p => p.gender))];
+    const genders = [...new Set(pickerPeople.map(p => p.gender).filter(g => g !== ''))];
+
+    // Check if we have gender data for all people
+    const hasGenderData = pickerPeople.every(p => p.gender !== '');
 
     // DOM elements
     const deptFilter = document.getElementById('pickerDeptFilter');
     const genderFilter = document.getElementById('pickerGenderFilter');
+    const genderFilterGroup = genderFilter?.closest('.filter-group');
     const startBtn = document.getElementById('pickerStartBtn');
     const resultPanel = document.getElementById('pickerResultPanel');
     const resultContent = document.getElementById('pickerResultContent');
@@ -831,6 +1033,7 @@ function hidePicker() {
 
     const reelDept = document.getElementById('pickerReelDept');
     const reelGender = document.getElementById('pickerReelGender');
+    const reelGenderWrapper = reelGender?.closest('.reel-wrapper');
     const reelName = document.getElementById('pickerReelName');
     const reelDeptContent = document.getElementById('pickerReelDeptContent');
     const reelGenderContent = document.getElementById('pickerReelGenderContent');
@@ -845,6 +1048,14 @@ function hidePicker() {
     let isSpinning = false;
     let selectedPerson = null;
 
+    // Hide gender-related UI elements if no gender data
+    function hideGenderUI() {
+        if (!hasGenderData) {
+            if (genderFilterGroup) genderFilterGroup.style.display = 'none';
+            if (reelGenderWrapper) reelGenderWrapper.style.display = 'none';
+        }
+    }
+
     // Initialize filters
     function initFilters() {
         departments.forEach(dept => {
@@ -854,12 +1065,15 @@ function hidePicker() {
             deptFilter.appendChild(option);
         });
 
-        genders.forEach(gender => {
-            const option = document.createElement('option');
-            option.value = gender;
-            option.textContent = gender;
-            genderFilter.appendChild(option);
-        });
+        // Only add gender options if we have gender data
+        if (hasGenderData) {
+            genders.forEach(gender => {
+                const option = document.createElement('option');
+                option.value = gender;
+                option.textContent = gender;
+                genderFilter.appendChild(option);
+            });
+        }
     }
 
     // Get eligible people based on filters
@@ -1019,7 +1233,12 @@ function hidePicker() {
     // Update result
     function updateResult(person) {
         if (person) {
-            resultContent.textContent = `${person.department} / ${person.gender} / ${person.name}`;
+            // Only show gender if we have gender data
+            if (hasGenderData && person.gender) {
+                resultContent.textContent = `${person.department} / ${person.gender} / ${person.name}`;
+            } else {
+                resultContent.textContent = `${person.department} / ${person.name}`;
+            }
             resultContent.className = 'result-content';
             resultPanel.className = 'result-panel success';
         } else {
@@ -1033,7 +1252,9 @@ function hidePicker() {
     function setControlsDisabled(disabled) {
         startBtn.disabled = disabled;
         deptFilter.disabled = disabled;
-        genderFilter.disabled = disabled;
+        if (hasGenderData && genderFilter) {
+            genderFilter.disabled = disabled;
+        }
 
         if (disabled) {
             document.getElementById('pickerContainer').classList.add('spinning');
@@ -1062,14 +1283,16 @@ function hidePicker() {
         updateResult(null);
 
         const isDeptLocked = deptFilter.value !== '';
-        const isGenderLocked = genderFilter.value !== '';
+        const isGenderLocked = hasGenderData && genderFilter && genderFilter.value !== '';
 
         const deptList = isDeptLocked ? [selectedPerson.department] : departments;
         const genderList = isGenderLocked ? [selectedPerson.gender] : genders;
         const nameList = eligiblePeople.map(p => p.name);
 
         reelDept.classList.toggle('locked', isDeptLocked);
-        reelGender.classList.toggle('locked', isGenderLocked);
+        if (hasGenderData && reelGender) {
+            reelGender.classList.toggle('locked', isGenderLocked);
+        }
 
         let deptTargetIndex, genderTargetIndex, nameTargetIndex;
 
@@ -1079,10 +1302,13 @@ function hidePicker() {
             deptTargetIndex = generateReelItems(deptList, selectedPerson.department, reelDeptContent);
         }
 
-        if (isGenderLocked) {
-            showLockedReel(selectedPerson.gender, reelGenderContent);
-        } else {
-            genderTargetIndex = generateReelItems(genderList, selectedPerson.gender, reelGenderContent);
+        // Only handle gender reel if we have gender data
+        if (hasGenderData && reelGenderContent) {
+            if (isGenderLocked) {
+                showLockedReel(selectedPerson.gender, reelGenderContent);
+            } else {
+                genderTargetIndex = generateReelItems(genderList, selectedPerson.gender, reelGenderContent);
+            }
         }
 
         nameTargetIndex = generateReelItems(nameList, selectedPerson.name, reelNameContent);
@@ -1093,21 +1319,26 @@ function hidePicker() {
             animateReel(reelDeptContent, deptTargetIndex, SPIN_DURATION, isDeptLocked)
         );
 
-        animations.push(
-            new Promise(resolve => {
-                setTimeout(async () => {
-                    await animateReel(reelGenderContent, genderTargetIndex, SPIN_DURATION, isGenderLocked);
-                    resolve();
-                }, STOP_DELAY);
-            })
-        );
+        // Only animate gender reel if we have gender data
+        if (hasGenderData && reelGenderContent) {
+            animations.push(
+                new Promise(resolve => {
+                    setTimeout(async () => {
+                        await animateReel(reelGenderContent, genderTargetIndex, SPIN_DURATION, isGenderLocked);
+                        resolve();
+                    }, STOP_DELAY);
+                })
+            );
+        }
 
+        // Delay for name reel depends on whether gender reel exists
+        const nameDelay = hasGenderData ? STOP_DELAY * 2 : STOP_DELAY;
         animations.push(
             new Promise(resolve => {
                 setTimeout(async () => {
                     await animateReel(reelNameContent, nameTargetIndex, SPIN_DURATION, false);
                     resolve();
-                }, STOP_DELAY * 2);
+                }, nameDelay);
             })
         );
 
@@ -1131,14 +1362,17 @@ function hidePicker() {
         // 初始状态：中间项目（索引1）居中显示
         reelDeptContent.style.transform = 'translateY(-60px) rotateX(0deg)';
 
-        reelGenderContent.innerHTML = '';
-        ['', genders[0] || '-', ''].forEach((item, i) => {
-            const div = document.createElement('div');
-            div.className = 'reel-item';
-            div.textContent = i === 1 ? item : '';
-            reelGenderContent.appendChild(div);
-        });
-        reelGenderContent.style.transform = 'translateY(-60px) rotateX(0deg)';
+        // Only initialize gender reel if we have gender data
+        if (hasGenderData && reelGenderContent) {
+            reelGenderContent.innerHTML = '';
+            ['', genders[0] || '-', ''].forEach((item, i) => {
+                const div = document.createElement('div');
+                div.className = 'reel-item';
+                div.textContent = i === 1 ? item : '';
+                reelGenderContent.appendChild(div);
+            });
+            reelGenderContent.style.transform = 'translateY(-60px) rotateX(0deg)';
+        }
 
         reelNameContent.innerHTML = '';
         ['', pickerPeople[0]?.name || '-', ''].forEach((item, i) => {
@@ -1154,6 +1388,7 @@ function hidePicker() {
     startBtn.addEventListener('click', startSpin);
 
     // Initialize
+    hideGenderUI();  // Hide gender UI if no gender data
     initFilters();
     initReels();
 })();
