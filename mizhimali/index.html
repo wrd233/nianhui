@@ -544,6 +544,29 @@
             margin-bottom: 1rem;
         }
 
+        .qr-placeholder {
+            width: 150px;
+            height: 150px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed rgba(255, 215, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: rgba(255, 215, 0, 0.7);
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        .qr-placeholder small {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            word-break: break-all;
+        }
+
         /* Navigation */
         .nav-controls {
             position: fixed;
@@ -1066,12 +1089,20 @@
                     break;
 
                 case 'round4-question':
-                    // Round 4 第一页：题目 + 二维码（根据题号动态加载）
+                    // Round 4 第一页：题目 + 二维码（从 content 文件夹动态加载）
                     const qrImagePath = `assets/images/qr_question_${slideData.questionNumber}.png`;
+                    let qrImageSrc = '';
+                    try {
+                        qrImageSrc = await loadAsset(qrImagePath);
+                    } catch (e) {
+                        console.warn(`无法加载二维码: ${qrImagePath}`, e);
+                    }
                     div.innerHTML = `
                         <div class="question-content">
                             <div class="prompt">${slideData.question.prompt}</div>
-                            <img src="${qrImagePath}" alt="扫码提交第${slideData.questionNumber}题" class="qr-code">
+                            ${qrImageSrc
+                            ? `<img src="${qrImageSrc}" alt="扫码提交第${slideData.questionNumber}题" class="qr-code">`
+                            : `<div class="qr-placeholder">二维码加载失败<br><small>${qrImagePath}</small></div>`}
                             <p class="qr-hint">扫码提交你的奇思妙想</p>
                         </div>
                     `;
