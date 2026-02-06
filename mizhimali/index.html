@@ -1189,7 +1189,7 @@
             }
         }
 
-        // Round 4 从后端加载答案
+        // Round 4 从后端加载答案（每次都重新请求最新数据）
         async function loadRound4Answers(questionNum, containerEl) {
             try {
                 const response = await fetch(`${CONFIG.API_BASE_URL}/api/questions/${questionNum}`);
@@ -1202,15 +1202,7 @@
                         .sort((a, b) => (b.score || 0) - (a.score || 0))
                         .slice(0, 3);
 
-                    containerEl.innerHTML = top3.map((sub, i) => {
-                        let rankClass = '';
-                        if (i === 0) rankClass = 'rank-1';
-                        else if (i === 1) rankClass = 'rank-2';
-                        else if (i === 2) rankClass = 'rank-3';
-                        // 存储完整数据到 data 属性
-                        const subData = encodeURIComponent(JSON.stringify(sub));
-                        return `<div class="answer-item ${rankClass}" data-submission="${subData}">${sub.name}：${sub.answer}</div>`;
-                    }).join('');
+                    renderRound4AnswerList(top3, containerEl);
                 } else {
                     containerEl.innerHTML = '<div class="answer-item" style="text-align:center; cursor:default;">暂无提交</div>';
                 }
@@ -1218,6 +1210,18 @@
                 console.error('Failed to load answers:', error);
                 containerEl.innerHTML = '<div class="answer-item" style="text-align:center; cursor:default;">加载失败，请检查网络</div>';
             }
+        }
+
+        function renderRound4AnswerList(submissions, containerEl) {
+            containerEl.innerHTML = submissions.map((sub, i) => {
+                let rankClass = '';
+                if (i === 0) rankClass = 'rank-1';
+                else if (i === 1) rankClass = 'rank-2';
+                else if (i === 2) rankClass = 'rank-3';
+                // 存储完整数据到 data 属性
+                const subData = encodeURIComponent(JSON.stringify(sub));
+                return `<div class="answer-item ${rankClass}" data-submission="${subData}">${sub.name}：${sub.answer}</div>`;
+            }).join('');
         }
 
         // Round 4 回答卡片弹出功能
