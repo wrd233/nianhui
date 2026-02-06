@@ -887,7 +887,8 @@
             if (round2) {
                 console.log("🔍正在扫描 Round 2 图片...");
                 const round2Images = files.filter(f => {
-                    const path = f.webkitRelativePath || f.name;
+                    // Normalize path separators for Windows compatibility
+                    const path = (f.webkitRelativePath || f.name).replace(/\\/g, '/');
                     return (path.includes('image/round2/') || path.includes('assets/images/round2/')) &&
                         /\.jpg$/i.test(f.name);
                 });
@@ -897,11 +898,13 @@
                     round2Images.sort((a, b) => a.name.localeCompare(b.name));
                     round2.items = round2Images.map((file, index) => {
                         const answer = file.name.replace(/\.[^/.]+$/, "");
+                        // Normalize path for consistency
+                        const assetPath = (file.webkitRelativePath || file.name).replace(/\\/g, '/');
                         return {
                             id: `auto-q2-${index + 1}`,
                             prompt: "这是一个谜语，请看图猜字",
                             answer: answer,
-                            asset: file.webkitRelativePath
+                            asset: assetPath
                         };
                     });
                 }
@@ -984,10 +987,14 @@
 
         async function loadAsset(assetPath) {
             if (!window.contentFiles || !assetPath) return null;
+            // Normalize path separators for Windows compatibility
+            const normalizedAssetPath = assetPath.replace(/\\/g, '/');
             // Match fuzzy
-            const assetFile = window.contentFiles.find(f =>
-                f.webkitRelativePath.endsWith(assetPath) || f.name === assetPath.split('/').pop()
-            );
+            const assetFile = window.contentFiles.find(f => {
+                const normalizedFilePath = (f.webkitRelativePath || '').replace(/\\/g, '/');
+                return normalizedFilePath.endsWith(normalizedAssetPath) ||
+                    f.name === normalizedAssetPath.split('/').pop();
+            });
             if (!assetFile) return null;
             return await readFileAsDataUrl(assetFile);
         }
